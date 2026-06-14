@@ -1,6 +1,7 @@
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true
+  bcrypt: set this to true or false
   core-js-pure: true
   esbuild: true
   less: true
