@@ -1,0 +1,17 @@
+$kind: http-request
+name: 'Get All Viajes'
+method: GET
+url: '{{baseUrl}}/api/viajes'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+queryParams:
+  - key: estado
+    value: activo
+    disabled: true
+  - key: fleteroId
+    value: '1'
+    disabled: true

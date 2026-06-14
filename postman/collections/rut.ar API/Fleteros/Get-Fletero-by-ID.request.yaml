@@ -1,0 +1,10 @@
+$kind: http-request
+name: 'Get Fletero by ID'
+method: GET
+url: '{{baseUrl}}/api/fleteros/{{fleteroId}}'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'

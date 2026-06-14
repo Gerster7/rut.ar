@@ -19,7 +19,54 @@ _Plataforma web para la gestion y optimizacion de asignaciones logisticas que co
 
 ### Modelo
 
-![imagen del modelo]()
+```mermaid
+classDiagram
+    %% Entidades principales
+    class Usuario {
+        +Integer id
+        +String email
+        +String password
+        +String rol
+        +login()
+    }
+
+    class Fletero {
+        +Integer id
+        +String nombre
+        +String telefono
+        +String vehiculo
+        +String patenteVehiculo
+        +Float capacidadVehiculo
+        +Float latitudActual
+        +Float longitudActual
+    }
+
+    class Negocio {
+        +Integer id
+        +String descripcion
+        +String tipoCarga
+        +String estado
+        +Float origenLat
+        +Float origenLng
+        +Float destinoLat
+        +Float destinoLng
+        +Float pesoTotal
+    }
+
+    class Viaje {
+        +Integer id
+        +Date fechaInicio
+        +Date fechaFinEstimada
+        +String estado
+        +Float pesoAsignado
+    }
+
+    %% Relaciones
+    Usuario "1" -- "1" Fletero : puede ser
+    Usuario "1" -- "*" Negocio : publica
+    Negocio "1" -- "*" Viaje : requiere
+    Fletero "1" -- "*" Viaje : realiza
+```
 
 _Nota_: incluir un link con la imagen de un modelo, puede ser modelo de dominio, diagrama de clases, DER. Si lo prefieren pueden utilizar diagramas con [Mermaid](https://mermaid.js.org) en lugar de imágenes.
 

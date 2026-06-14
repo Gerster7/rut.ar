@@ -1,0 +1,20 @@
+$kind: http-request
+name: 'Update Viaje'
+method: PUT
+url: '{{baseUrl}}/api/viajes/{{viajeId}}'
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estado": "completado",
+      "fechaFinEstimada": "2026-06-16T20:00:00.000Z"
+    }

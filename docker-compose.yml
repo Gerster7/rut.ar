@@ -1,0 +1,17 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: rutar_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: rutar_db
+      MYSQL_USER: rutar_user
+      MYSQL_PASSWORD: rutar_password
+    ports:
+      - '3307:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

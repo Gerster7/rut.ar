@@ -1,0 +1,27 @@
+$kind: http-request
+name: 'Create Negocio'
+method: POST
+url: '{{baseUrl}}/api/negocios'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuarioId": 1,
+      "descripcion": "Carga de electrodomésticos",
+      "tipoCarga": "electrodomésticos",
+      "estado": "abierto",
+      "origenLat": -34.6037,
+      "origenLng": -58.3816,
+      "destinoLat": -31.4201,
+      "destinoLng": -64.1888,
+      "pesoTotal": 1200
+    }

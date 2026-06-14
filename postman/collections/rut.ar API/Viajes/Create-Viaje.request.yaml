@@ -1,0 +1,24 @@
+$kind: http-request
+name: 'Create Viaje'
+method: POST
+url: '{{baseUrl}}/api/viajes'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "negocioId": 1,
+      "fleteroId": 1,
+      "fechaInicio": "2026-06-15T08:00:00.000Z",
+      "fechaFinEstimada": "2026-06-16T18:00:00.000Z",
+      "estado": "activo",
+      "pesoAsignado": 1200
+    }

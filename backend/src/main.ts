@@ -5,8 +5,12 @@
 
 import express from 'express';
 import * as path from 'path';
+import { connectDB } from './config/database';
 
 const app = express();
+
+// Conectar a DB
+connectDB();
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 

@@ -1,0 +1,10 @@
+$kind: http-request
+name: 'Buscar Fleteros Disponibles'
+method: GET
+url: '{{baseUrl}}/api/negocios/{{negocioId}}/fleteros-disponibles'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'

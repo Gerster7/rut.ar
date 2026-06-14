@@ -1,0 +1,16 @@
+$kind: collection
+name: 'rut.ar API'
+description: 'API collection for the rut.ar logistics platform. Manages Usuarios, Fleteros, Negocios and Viajes with JWT authentication.'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:3333'
+  - key: token
+    value: ''
+  - key: usuarioId
+    value: '1'
+  - key: fleteroId
+    value: '1'
+  - key: negocioId
+    value: '1'
+  - key: viajeId
+    value: '1'

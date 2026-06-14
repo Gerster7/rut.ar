@@ -1,0 +1,22 @@
+$kind: http-request
+name: 'Update Fletero'
+method: PUT
+url: '{{baseUrl}}/api/fleteros/{{fleteroId}}'
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Juan Actualizado",
+      "telefono": "9988776655",
+      "latitudActual": -34.61,
+      "longitudActual": -58.39
+    }

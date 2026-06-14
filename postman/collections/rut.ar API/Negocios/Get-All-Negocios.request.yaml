@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Get All Negocios'
+method: GET
+url: '{{baseUrl}}/api/negocios'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+queryParams:
+  - key: estado
+    value: abierto
+    disabled: true

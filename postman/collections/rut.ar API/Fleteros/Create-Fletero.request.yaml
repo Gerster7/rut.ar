@@ -1,0 +1,26 @@
+$kind: http-request
+name: 'Create Fletero'
+method: POST
+url: '{{baseUrl}}/api/fleteros'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuarioId": 1,
+      "nombre": "Juan Pérez",
+      "telefono": "1122334455",
+      "vehiculo": "Camión",
+      "patenteVehiculo": "ABC123",
+      "capacidadVehiculo": 5000,
+      "latitudActual": -34.6037,
+      "longitudActual": -58.3816
+    }

@@ -1,0 +1,10 @@
+$kind: http-request
+name: 'Delete Viaje'
+method: DELETE
+url: '{{baseUrl}}/api/viajes/{{viajeId}}'
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
