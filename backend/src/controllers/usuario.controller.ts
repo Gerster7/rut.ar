@@ -13,27 +13,22 @@ export const register = async (req: AuthRequest, res: Response): Promise<any> =>
     if (!email || !password) {
       return res.status(400).json({ error: 'Email y password son requeridos' });
     }
-
     const requestedRol = (rol || 'USUARIO').toUpperCase();
-
     if (requestedRol === 'LOGISTICO' || requestedRol === 'ADMINISTRADOR') {
       if (!req.user || req.user.rol.toUpperCase() !== 'ADMINISTRADOR') {
         return res.status(403).json({ error: `Solo un ADMINISTRADOR puede registrar usuarios con rol ${requestedRol}` });
       }
     }
-
     const existingUser = await Usuario.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const nuevoUsuario = await Usuario.create({
       email,
       password: hashedPassword,
       rol: requestedRol
     });
-
     res.status(201).json({ 
       message: 'Usuario creado con éxito', 
       usuario: { id: nuevoUsuario.id, email: nuevoUsuario.email, rol: nuevoUsuario.rol } 

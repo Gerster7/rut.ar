@@ -25,7 +25,7 @@ app.use('/api/negocios', negocioRoutes);
 app.use('/api/viajes', viajeRoutes);
 
 app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to backend!', oa: 'oaoa' });
+  res.send({ message: 'Welcome to backend!'});
 });
 
 const port = process.env.PORT || 3333;
