@@ -1,15 +1,26 @@
 $kind: http-request
-name: 'Login'
+name: Login
 method: POST
-url: '{{baseUrl}}/api/auth/login'
+url: "{{baseUrl}}/api/usuarios/login"
+scripts:
+  - type: afterResponse
+    code: "var jsonData = pm.response.json();\r
+
+      \          if (jsonData.token) {\r
+
+      \              pm.collectionVariables.set(\"token\", jsonData.token);\r
+
+      \              console.log(\"Token guardado en collectionVariables\");\r
+
+      \          }"
+    language: text/javascript
 order: 1000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
     {
-      "email": "usuario@example.com",
-      "password": "password123"
+      "email": "pablo@grillo.com",
+      "password": "Prueba123"
     }

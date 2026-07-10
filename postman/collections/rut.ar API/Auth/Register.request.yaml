@@ -1,11 +1,10 @@
 $kind: http-request
-name: 'Register'
+name: Register
 method: POST
-url: '{{baseUrl}}/api/auth/register'
+url: "{{baseUrl}}/api/usuarios/register"
 order: 2000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
