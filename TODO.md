@@ -15,6 +15,17 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 **Epics (Lógica de Matching):**
 - [ ] Crear archivo `matching.controller.ts`.
 - [ ] Implementar función utilitaria (Haversine) para calcular distancias entre coordenadas.
+  > **Nota (Guardado para después):** Código de la fórmula en TypeScript:
+  > ```typescript
+  > export function calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  >   const R = 6371; // Radio de la Tierra en kilómetros
+  >   const dLat = (lat2 - lat1) * (Math.PI / 180);
+  >   const dLon = (lon2 - lon1) * (Math.PI / 180);
+  >   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  >   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  >   return R * c; 
+  > }
+  > ```
 - [ ] Implementar endpoint `GET /api/matching/fleteros` (Buscar fleteros disponibles según ubicación de un negocio).
 - [ ] Implementar endpoint `POST /api/matching/asignar` (Cambiar estado del Negocio y generar un Viaje con el Fletero).
 - [ ] Crear archivo `matching.routes.ts` e importarlo en `main.ts`.
