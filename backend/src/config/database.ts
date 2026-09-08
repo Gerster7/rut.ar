@@ -2,14 +2,14 @@ import { Sequelize } from 'sequelize-typescript';
 import { dbModels } from '../models';
 
 export const sequelize = new Sequelize({
-  database: 'rutar_db',
-  username: 'rutar_user',
-  password: 'rutar_password',
-  host: 'localhost',
+  database: process.env.DB_NAME || 'rutar_db',
+  username: process.env.DB_USER || 'rutar_user',
+  password: process.env.DB_PASSWORD || 'rutar_password',
+  host: process.env.DB_HOST || 'localhost',
   dialect: 'mysql',
-  port: 3307, 
+  port: Number(process.env.DB_PORT) || 3307, 
   models: dbModels, 
-  logging: /*false*/ console.log, 
+  logging: process.env.NODE_ENV === 'development' ? console.log : false, 
 });
 
 export const connectDB = async () => {
