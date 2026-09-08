@@ -47,9 +47,10 @@ export function calcularDistanciaHaversine(
 
 /**
  * Epic 1: Busca fleteros disponibles para un negocio específico.
- * Filtra por capacidad de vehículo (capacidadVehiculo >= pesoTotal),
- * descarta fleteros con viajes activos/en curso y los ordena por proximidad Haversine.
- * Endpoint: GET /api/negocios/:id/fleteros-disponibles
+ * Filtra por capacidad de vehículo (capacidadVehiculo >= pesoTotal).
+ * Retorna fleteros desocupados (disponibilidad inmediata) y, opcionalmente,
+ * fleteros en tránsito próximos a completar su descarga (retorno anticipado).
+ * Endpoint: GET /api/negocios/:id/fleteros-disponibles?incluirEnTransito=true&radioDestinoKm=50
  */
 export const getFleterosDisponibles = async (
   req: Request,
@@ -57,6 +58,11 @@ export const getFleterosDisponibles = async (
 ): Promise<any> => {
   try {
     const negocioId = req.params.id;
+    const incluirEnTransito = req.query.incluirEnTransito === 'true';
+    const radioDestinoMaxKm = req.query.radioDestinoKm
+      ? Number(req.query.radioDestinoKm)
+      : 50;
+
     const negocio = await Negocio.findByPk(negocioId);
 
     if (!negocio) {
@@ -69,22 +75,22 @@ export const getFleterosDisponibles = async (
       });
     }
 
-    // 1. Identificar fleteros ocupados con viajes activos o en curso
-    const viajesOcupados = await Viaje.findAll({
+    // 1. Identificar viajes activos o en curso
+    const viajesActivos = await Viaje.findAll({
       where: {
         estado: {
           [Op.in]: ['asignado', 'activo', 'en curso']
         }
       },
-      attributes: ['fleteroId']
+      include: [Negocio, Fletero]
     });
 
     const fleterosOcupadosIds = Array.from(
-      new Set(viajesOcupados.map((v) => v.fleteroId))
+      new Set(viajesActivos.map((v) => v.fleteroId))
     );
 
     // 2. Buscar fleteros con capacidad suficiente, ubicación registrada y sin viajes en curso
-    const fleteros = await Fletero.findAll({
+    const fleterosLibres = await Fletero.findAll({
       where: {
         capacidadVehiculo: {
           [Op.gte]: negocio.pesoTotal
@@ -101,8 +107,8 @@ export const getFleterosDisponibles = async (
       }
     });
 
-    // 3. Calcular distancia ortodrómica desde la ubicación del fletero al origen del negocio
-    const fleterosConDistancia = fleteros.map((fletero) => {
+    // 3. Mapear fleteros libres con disponibilidad inmediata
+    const resultados: any[] = fleterosLibres.map((fletero) => {
       const distanciaKm = calcularDistanciaHaversine(
         fletero.latitudActual,
         fletero.longitudActual,
@@ -112,14 +118,72 @@ export const getFleterosDisponibles = async (
 
       return {
         ...fletero.toJSON(),
+        disponibilidad: 'inmediata',
         distanciaKm
       };
     });
 
-    // 4. Ordenar ascendentemente por cercanía geográfica
-    fleterosConDistancia.sort((a, b) => a.distanciaKm - b.distanciaKm);
+    // 4. Si se solicita incluirEnTransito, evaluar fleteros en viaje próximos a destino
+    if (incluirEnTransito) {
+      for (const viaje of viajesActivos) {
+        const fletero = viaje.fletero || (await Fletero.findByPk(viaje.fleteroId));
+        const negocioViaje =
+          viaje.negocio || (await Negocio.findByPk(viaje.negocioId));
 
-    return res.json(fleterosConDistancia);
+        if (
+          !fletero ||
+          !negocioViaje ||
+          fletero.latitudActual == null ||
+          fletero.longitudActual == null
+        ) {
+          continue;
+        }
+
+        if (fletero.capacidadVehiculo < negocio.pesoTotal) {
+          continue;
+        }
+
+        if (negocioViaje.destinoLat == null || negocioViaje.destinoLng == null) {
+          continue;
+        }
+
+        // Distancia restante para que el fletero complete su viaje actual
+        const distanciaRestanteDestinoKm = calcularDistanciaHaversine(
+          fletero.latitudActual,
+          fletero.longitudActual,
+          negocioViaje.destinoLat,
+          negocioViaje.destinoLng
+        );
+
+        if (distanciaRestanteDestinoKm <= radioDestinoMaxKm) {
+          // Distancia desde el punto de descarga hacia el origen del nuevo negocio
+          const distanciaAlNuevoOrigenKm = calcularDistanciaHaversine(
+            negocioViaje.destinoLat,
+            negocioViaje.destinoLng,
+            negocio.origenLat,
+            negocio.origenLng
+          );
+
+          resultados.push({
+            ...fletero.toJSON(),
+            disponibilidad: 'proximo_a_destino',
+            distanciaKm: distanciaAlNuevoOrigenKm,
+            viajeActual: {
+              viajeId: viaje.id,
+              distanciaRestanteDestinoKm,
+              destinoDescargaLat: negocioViaje.destinoLat,
+              destinoDescargaLng: negocioViaje.destinoLng,
+              fechaFinEstimada: viaje.fechaFinEstimada
+            }
+          });
+        }
+      }
+    }
+
+    // 5. Ordenar ascendentemente por cercanía geográfica
+    resultados.sort((a, b) => a.distanciaKm - b.distanciaKm);
+
+    return res.json(resultados);
   } catch (error) {
     return res.status(500).json({
       error: 'Error al buscar fleteros disponibles',

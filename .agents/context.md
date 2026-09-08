@@ -398,11 +398,13 @@ export function calcularDistanciaHaversine(lat1: number, lon1: number, lat2: num
 
 ### 6.2 Flujo 1: Matching Fleteros Disponibles para un Negocio
 - **Endpoint canónico:** `GET /api/negocios/:id/fleteros-disponibles`
+  - Parámetros de consulta opcionales: `?incluirEnTransito=true&radioDestinoKm=50`
 1. Se recibe el `negocioId` y se recupera el registro del `Negocio` (`origenLat`, `origenLng`, `pesoTotal`).
 2. Se buscan fleteros registrados cuyo vehículo posea `capacidadVehiculo >= negocio.pesoTotal`.
-3. Se filtran fleteros excluyendo aquellos con viajes en estado `'activo'` o `'en curso'`.
-4. Para cada fletero elegible con coordenadas válidas (`latitudActual`, `longitudActual`), se calcula la distancia Haversine hasta `(negocio.origenLat, negocio.origenLng)`.
-5. Se devuelven los fleteros ordenados de menor a mayor distancia con el valor calculado en kilómetros.
+3. **Disponibilidad Inmediata:** Fleteros libres sin viajes activos/en curso. Se calcula la distancia Haversine desde su ubicación actual hasta `(negocio.origenLat, negocio.origenLng)`.
+4. **Retorno Anticipado (si `incluirEnTransito=true`):** Fleteros en tránsito cuya distancia restante de entrega ($d_{\text{restante}} = \text{Haversine}(\text{fletero.actual}, \text{viaje.destino})$) sea $\le \text{radioDestinoKm}$ (default 50 km). Se calcula la distancia desde su punto de descarga hasta el origen del nuevo negocio.
+5. Se devuelven los fleteros clasificados por `disponibilidad` (`'inmediata'` o `'proximo_a_destino'`) ordenados de menor a mayor distancia en kilómetros.
+
 
 ### 6.3 Flujo 2: Matching de Retorno Vacío para un Viaje Activo
 - **Endpoint canónico:** `GET /api/viajes/:id/negocios-retorno`
