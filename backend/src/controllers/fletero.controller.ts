@@ -1,5 +1,37 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
 import { Fletero } from '../models';
+
+export const updateMiUbicacion = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const { latitud, longitud } = req.body;
+
+    if (latitud === undefined || longitud === undefined) {
+      return res.status(400).json({ error: 'Latitud y longitud son requeridas' });
+    }
+
+    const lat = Number(latitud);
+    const lon = Number(longitud);
+
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Coordenadas geográficas inválidas (Latitud: -90 a 90, Longitud: -180 a 180)' });
+    }
+
+    const fletero = await Fletero.findOne({ where: { usuarioId: req.user!.id } });
+    if (!fletero) {
+      return res.status(404).json({ error: 'Perfil de fletero no encontrado para el usuario actual' });
+    }
+
+    await fletero.update({ latitudActual: lat, longitudActual: lon });
+    res.json({
+      message: 'Ubicación actualizada correctamente',
+      latitudActual: lat,
+      longitudActual: lon
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar la ubicación del fletero' });
+  }
+};
 
 export const getFleteros = async (req: Request, res: Response): Promise<any> => {
   try {

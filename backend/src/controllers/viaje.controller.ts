@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { Viaje } from '../models';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { Viaje, Fletero } from '../models';
 
 export const getViajes = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -29,15 +30,29 @@ export const createViaje = async (req: Request, res: Response): Promise<any> => 
   }
 };
 
-export const updateViaje = async (req: Request, res: Response): Promise<any> => {
+export const updateViaje = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const viaje = await Viaje.findByPk(req.params.id);
     if (!viaje) return res.status(404).json({ error: 'Viaje no encontrado' });
     
+    // Si el usuario es fletero, solo puede gestionar el viaje que le fue asignado
+    if (req.user?.rol === 'FLETERO') {
+      const fletero = await Fletero.findOne({ where: { usuarioId: req.user.id } });
+      if (!fletero || viaje.fleteroId !== fletero.id) {
+        return res.status(403).json({ error: 'No tienes permisos para gestionar este viaje' });
+      }
+      
+      // El fletero solo está autorizado a transicionar el estado del viaje (ej: 'en curso', 'finalizado')
+      if (req.body.estado) {
+        await viaje.update({ estado: req.body.estado });
+      }
+      return res.json(viaje);
+    }
+
     await viaje.update(req.body);
     res.json(viaje);
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar el viaje', detalles: error });
+    res.status(500).json({ error: 'Error al actualizar el viaje' });
   }
 };
 
