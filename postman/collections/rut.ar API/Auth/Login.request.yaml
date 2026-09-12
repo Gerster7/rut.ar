@@ -21,6 +21,6 @@ body:
   type: json
   content: |-
     {
-      "email": "pablo@grillo.com",
+      "email": "admin@rutar.com",
       "password": "Prueba123"
     }
