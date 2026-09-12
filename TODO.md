@@ -53,6 +53,6 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 
 ## 3. Entregas y Gestión de Proyecto (Requisitos de Cátedra) 📦
 - [ ] [#24](https://github.com/Gerster7/rut.ar/issues/24) - `[DEVOPS] ci`: Pipeline de GitHub Actions para linter, tests y build + Despliegue en la nube (Backend + Frontend).
-- [ ] **GitHub Projects (Tablero Kanban):**
-  - [ ] Crear el proyecto en GitHub vinculando los issues #10 al #24 en columnas `Todo`, `In Progress`, `Done`.
+- [x] **GitHub Projects (Tablero Kanban):**
+  - [x] Crear el proyecto en GitHub vinculando los issues #10 al #24 en columnas `Todo`, `In Progress`, `Done` ([rut.ar - Tareas](https://github.com/users/Gerster7/projects/3)).
   - [ ] Registrar evidencias para la cátedra DSW.
