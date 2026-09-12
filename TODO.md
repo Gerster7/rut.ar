@@ -15,16 +15,16 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 - [x] Epic 1 (Asignación atómica): `POST /api/negocios/:id/asignar-fletero` (transacción Sequelize: Negocio -> 'asignado', creación de Viaje con `fechaFinEstimada`).
 - [x] Epic 2 (Retorno Vacío - Core DSW): `GET /api/viajes/:id/negocios-retorno` (búsqueda de oportunidades abiertas cercanas al destino del viaje).
 
-### Pendiente (Tests & Deuda Técnica) ⏳
-**Deuda Técnica y Hardening:**
-- [ ] Completar CRUD formal de `Usuario` para cátedra DSW (`GET /api/usuarios/:id`, `PUT /api/usuarios/:id`, `DELETE /api/usuarios/:id`).
-- [ ] Validar entradas con `express-validator` en los controladores (reemplazar asignaciones directas de `req.body`).
-- [ ] Integrar logger estructurado `pino` y middleware `pino-http` en `main.ts`.
+### Pendiente (Vinculado con GitHub Issues) ⏳
 
-**Testing Automático (Backend):**
-- [ ] Escribir 1 Test Unitario con Jest para la función de cálculo de distancia Haversine (`calcularDistanciaHaversine`).
-- [ ] Escribir 1 Test de Integración con Supertest sobre el endpoint de autenticación (`POST /api/usuarios/login`).
-- [ ] Eliminar `"passWithNoTests": true` de `backend/project.json` tras incorporar los tests activos.
+**1. Backend & Hardening:**
+- [x] [#10](https://github.com/Gerster7/rut.ar/issues/10) - `[BE] feat(usuarios)`: Completar CRUD formal de `Usuario` para cátedra DSW (`GET /:id`, `PUT /:id`, `DELETE /:id`).
+- [ ] [#11](https://github.com/Gerster7/rut.ar/issues/11) - `[BE] feat(validation)`: Validar entradas con `express-validator` en todos los controladores.
+- [ ] [#12](https://github.com/Gerster7/rut.ar/issues/12) - `[BE] feat(logging)`: Integrar logger estructurado `pino` y middleware `pino-http` en `main.ts`.
+
+**2. Testing Automático (Backend):**
+- [ ] [#13](https://github.com/Gerster7/rut.ar/issues/13) - `[BE-TEST] test(geo)`: Suite de pruebas unitarias para cálculo Haversine con Jest (`calcularDistanciaHaversine`).
+- [ ] [#14](https://github.com/Gerster7/rut.ar/issues/14) - `[BE-TEST] test(auth)`: Prueba de integración con Supertest sobre Auth y RBAC (`POST /api/usuarios/login`).
 
 ---
 
@@ -33,54 +33,26 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 - [x] Inicialización del proyecto (`frontend` en Nx monorepo con Angular v22 Standalone).
 - [x] Configuración de proxy reverso en `frontend/proxy.conf.json` apuntando a `http://localhost:3333`.
 
-### Pendiente (Tareas Granulares) ⏳
-**1. Configuración Core:**
-- [ ] Configurar `provideHttpClient(withInterceptors([...]))` en `frontend/src/app/app.config.ts`.
-- [ ] Instalar UI Library (Tailwind, Material o PrimeNG).
-- [ ] Configurar NgRx SignalStore (setup inicial).
-- [ ] Instalar Leaflet.js y configurar los estilos base del mapa en `styles.scss`.
+### Pendiente (Vinculado con GitHub Issues) ⏳
+**1. Configuración Core & Auth:**
+- [ ] [#15](https://github.com/Gerster7/rut.ar/issues/15) - `[FE] feat(core)`: Setup de Angular 22, `provideHttpClient(withInterceptors([...]))` y diseño base responsive.
+- [ ] [#16](https://github.com/Gerster7/rut.ar/issues/16) - `[FE] feat(auth)`: Módulo de autenticación (`AuthService`, `LoginComponent`, `RegisterComponent`, `AuthGuard`, `AuthInterceptor`).
 
-**2. Autenticación (Auth):**
-- [ ] Crear `AuthService` para peticiones HTTP de login/registro.
-- [ ] Crear componente UI de `Login`.
-- [ ] Crear `AuthGuard` para proteger las rutas privadas.
-- [ ] Crear `AuthInterceptor` para inyectar automáticamente el JWT en las cabeceras HTTP.
+**2. Vistas y Mapas:**
+- [ ] [#17](https://github.com/Gerster7/rut.ar/issues/17) - `[FE] feat(negocios)`: Vistas de listado con filtros (`NegociosList`) y formulario de alta de negocios.
+- [ ] [#18](https://github.com/Gerster7/rut.ar/issues/18) - `[FE] feat(map)`: Componente de mapa interactivo con Leaflet.js y OpenStreetMap (`MapComponent`).
+- [ ] [#19](https://github.com/Gerster7/rut.ar/issues/19) - `[FE] feat(matching)`: Detalle de negocio y flujo de búsqueda y asignación de fleteros (Epic 1 UI).
+- [ ] [#20](https://github.com/Gerster7/rut.ar/issues/20) - `[FE] feat(viajes)`: Vistas de listado (`ViajesList`) y detalle (`ViajeDetail`) de viajes.
+- [ ] [#21](https://github.com/Gerster7/rut.ar/issues/21) - `[FE] feat(retorno-vacio)`: Vista de sugerencias de cargas de retorno para fleteros en tránsito (Epic 2 UI).
 
-**3. Vistas - Negocios:**
-- [ ] Crear `NegocioService` para peticiones al backend.
-- [ ] Crear componente `NegociosList` (Grilla/Tabla de negocios).
-- [ ] Agregar filtros de búsqueda en `NegociosList`.
-- [ ] Crear componente `NegocioDetail` para ver la vista detallada al hacer click.
-
-**4. Vistas - Viajes:**
-- [ ] Crear `ViajeService` para peticiones HTTP.
-- [ ] Crear componente `ViajesList` (Grilla de viajes activos/históricos).
-- [ ] Crear componente `ViajeDetail`.
-
-**5. Flujo de Matching (Epic UI):**
-- [ ] Crear componente reutilizable de Mapa (`MapComponent`) con Leaflet.
-- [ ] Integrar `MapComponent` en la vista de detalle de Negocio.
-- [ ] Crear botón y lógica en UI para "Buscar Fleteros Cercanos".
-- [ ] Mostrar fleteros candidatos en el mapa con marcadores.
-- [ ] Agregar botón y flujo para "Confirmar Asignación" desde la UI.
-- [ ] Flujo de búsqueda de retorno vacío para fleteros con viaje activo.
-
-**6. Testing y UX:**
-- [ ] Revisar diseño responsive (Mobile-first, SM, MD, LG).
-- [ ] Escribir 1 Test Unitario para un Componente con Vitest (ej: Login o Listado).
-- [ ] Escribir 1 Test E2E para el flujo principal con Playwright (`frontend-e2e`).
+**3. Testing Frontend:**
+- [ ] [#22](https://github.com/Gerster7/rut.ar/issues/22) - `[FE-TEST] test(components)`: Prueba unitaria de componente Angular con Vitest.
+- [ ] [#23](https://github.com/Gerster7/rut.ar/issues/23) - `[FE-TEST] test(e2e)`: Suite de pruebas End-to-End con Playwright (`frontend-e2e`).
 
 ---
 
 ## 3. Entregas y Gestión de Proyecto (Requisitos de Cátedra) 📦
-*Se dejan aquí registrados para no olvidarlos de cara a las revisiones y entregas finales.*
-
-- [ ] **GitHub Projects (Metodología Ágil):** 
-  - [ ] Volcar estas tareas en un tablero (Kanban/Scrum) en la pestaña "Projects" de GitHub.
-  - [ ] Generar evidencias de asignación de tareas, minutas o progreso.
-- [ ] **Gestión de Repositorio:**
-  - [ ] Trabajar con Ramas/Branches y hacer Pull Requests (la cátedra exige links a los PRs en la `proposal.md`).
-- [ ] **Deploy y CI/CD (GitHub Actions):**
-  - [ ] Implementar un pipeline básico (GitHub Actions) que corra los tests (para generar la "evidencia" exigida por la cátedra).
-  - [ ] Desplegar el Backend (ej: Render, Railway).
-  - [ ] Desplegar el Frontend (ej: Vercel, Netlify).
+- [ ] [#24](https://github.com/Gerster7/rut.ar/issues/24) - `[DEVOPS] ci`: Pipeline de GitHub Actions para linter, tests y build + Despliegue en la nube (Backend + Frontend).
+- [ ] **GitHub Projects (Tablero Kanban):**
+  - [ ] Crear el proyecto en GitHub vinculando los issues #10 al #24 en columnas `Todo`, `In Progress`, `Done`.
+  - [ ] Registrar evidencias para la cátedra DSW.

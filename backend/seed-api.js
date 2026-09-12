@@ -12,7 +12,7 @@ async function seed() {
   const { token: adminToken } = await loginAdmin.json();
 
   // 1. Registrar LOGISTICO
-  let r1 = await fetch(`${API_URL}/usuarios/register`, {
+  const r1 = await fetch(`${API_URL}/usuarios/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
     body: JSON.stringify({ email: 'logistico@rutar.com', password: 'Prueba123', rol: 'LOGISTICO' })
@@ -20,14 +20,14 @@ async function seed() {
   console.log('Reg LOGISTICO:', await r1.text());
 
   // 2. Registrar FLETEROS
-  let r2 = await fetch(`${API_URL}/usuarios/register`, {
+  const r2 = await fetch(`${API_URL}/usuarios/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: 'fletero1@rutar.com', password: 'Prueba123', rol: 'FLETERO' })
   });
   console.log('Reg F1:', await r2.text());
   
-  let r3 = await fetch(`${API_URL}/usuarios/register`, {
+  const r3 = await fetch(`${API_URL}/usuarios/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: 'fletero2@rutar.com', password: 'Prueba123', rol: 'FLETERO' })

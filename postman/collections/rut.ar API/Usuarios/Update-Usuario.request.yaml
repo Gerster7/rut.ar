@@ -1,0 +1,19 @@
+$kind: http-request
+name: 'Update Usuario'
+method: PUT
+url: '{{baseUrl}}/api/usuarios/1'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "usuario_modificado@rutar.com"
+    }
