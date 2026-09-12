@@ -223,6 +223,9 @@ rut.ar/
 | `/api/usuarios/register` | `POST` | `optionalAuth` | Público para `USUARIO` o `FLETERO` / `ADMINISTRADOR` para otros | Si `rol` es `LOGISTICO` o `ADMINISTRADOR`, requiere token con rol `ADMINISTRADOR`. |
 | `/api/usuarios/login` | `POST` | Ninguno (Público) | Todos | Emite JWT firmado con `id`, `email`, `rol` (expira en 24h). |
 | `/api/usuarios` | `GET` | `verifyToken, checkRole` | `ADMINISTRADOR` | Lista usuarios excluyendo el campo `password`. |
+| `/api/usuarios/:id` | `GET` | `verifyToken` | `ADMINISTRADOR` o usuario propio | Detalle del usuario (excluye `password`, incluye `Fletero` si existe). |
+| `/api/usuarios/:id` | `PUT` | `verifyToken` | `ADMINISTRADOR` o usuario propio | Actualiza email o password (hash bcrypt). Solo `ADMINISTRADOR` puede cambiar rol. |
+| `/api/usuarios/:id` | `DELETE`| `verifyToken` | `ADMINISTRADOR` o usuario propio | Baja de usuario con control de integridad referencial. |
 | `/api/fleteros` | GET | `verifyToken` | Cualquier usuario autenticado | Lista todos los fleteros registrados. |
 | `/api/fleteros/mi-ubicacion` | `PATCH` | `verifyToken, checkRole` | `FLETERO` | Actualiza coordenadas GPS (`latitudActual`, `longitudActual`) del fletero autenticado. |
 | `/api/fleteros/:id` | `GET` | `verifyToken` | Cualquier usuario autenticado | Detalle de un fletero por ID. |
@@ -239,15 +242,15 @@ rut.ar/
 | `/api/viajes` | `POST` | `verifyToken, checkRole` | `LOGISTICO`, `ADMINISTRADOR` | Crea un viaje directo asociando negocio y fletero. |
 | `/api/viajes/:id` | `PUT` | `verifyToken, checkRole` | `FLETERO`, `LOGISTICO`, `ADMINISTRADOR` | Actualiza viaje (el `FLETERO` solo puede transicionar el estado de sus viajes asignados). |
 | `/api/viajes/:id` | `DELETE`| `verifyToken, checkRole` | `LOGISTICO`, `ADMINISTRADOR` | Elimina viaje por ID. |
-| `/api/negocios/:id/fleteros-disponibles` | `GET` | `verifyToken` *(previsto)* | `LOGISTICO`, `ADMINISTRADOR` | Sugerencias de fleteros por proximidad Haversine y peso. |
-| `/api/negocios/:id/asignar-fletero` | `POST` | `verifyToken, checkRole` *(previsto)* | `LOGISTICO`, `ADMINISTRADOR` | Asigna fletero, cambia estado de negocio y crea Viaje atómico. |
-| `/api/viajes/:id/negocios-retorno` | `GET` | `verifyToken` *(previsto)* | `FLETERO`, `LOGISTICO`, `ADMINISTRADOR` | Retorno vacío: negocios abiertos cercanos al destino del viaje. |
+| `/api/negocios/:id/fleteros-disponibles` | `GET` | `verifyToken` | `LOGISTICO`, `ADMINISTRADOR` | Sugerencias de fleteros por proximidad Haversine y peso. |
+| `/api/negocios/:id/asignar-fletero` | `POST` | `verifyToken, checkRole` | `LOGISTICO`, `ADMINISTRADOR` | Asigna fletero, cambia estado de negocio y crea Viaje atómico. |
+| `/api/viajes/:id/negocios-retorno` | `GET` | `verifyToken` | `FLETERO`, `LOGISTICO`, `ADMINISTRADOR` | Retorno vacío: negocios abiertos cercanos al destino del viaje. |
 
 > 📌 **Política de Geolocalización Móvil:**  
 > El cliente móvil del fletero transmite coordenadas a `PATCH /api/fleteros/mi-ubicacion` periódicamente cada **1 hora** o ante desplazamientos detectados mayores o iguales a **1.500 metros** (1.5 km), optimizando el consumo de batería y datos móviles.
 
-> 📌 **Observación sobre el recurso `/api/usuarios`:**  
-> Actualmente, `Usuario` solo dispone de `POST /register`, `POST /login` y `GET /` (listado administradores). No se han implementado aún `GET /:id` (detalle), `PUT /:id` (actualización de perfil) ni `DELETE /:id` (baja de cuenta). Para satisfacer el criterio estricto de CRUD de cátedra DSW, se recomienda incorporar estos 3 endpoints antes de la defensa final.
+> 📌 **Estado del recurso `/api/usuarios`:**  
+> `Usuario` dispone del CRUD formal completo implementado: `POST /register`, `POST /login`, `GET /` (listado administradores), `GET /:id` (detalle), `PUT /:id` (actualización de perfil/contraseña/rol) y `DELETE /:id` (baja de cuenta con control de integridad referencial), cumpliendo plenamente con el requisito de cátedra DSW.
 
 ### 3.3 Convenciones en el Frontend
 1. **Arquitectura Angular 22 Standalone**:
