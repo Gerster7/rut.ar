@@ -4,6 +4,23 @@
 1. Implementar el **Issue #11 (`[BE] feat(validation)`)**: validación y sanitización de esquemas de entrada con `express-validator` en todos los controladores y endpoints de la API.
 2. Definir un middleware estandarizado para interceptar errores de validación y retornar respuestas JSON estructuradas (`400 Bad Request`).
 3. Crear una suite de integración con Supertest para verificar exhaustivamente las reglas de validación en todos los recursos (`Usuarios`, `Fleteros`, `Negocios`, `Matching`, `Viajes`).
+4. **Gobernanza y Limpieza Documental:** Refactorizar [`.agents/context.md`](./context.md) para desacoplar el backlog de la documentación de arquitectura, convirtiendo a [`TODO.md`](../TODO.md) en la única fuente de verdad local para tareas y estableciendo una convención formal de registro.
+
+---
+
+## 📋 Convención de Registro y Gobernanza del Proyecto
+
+A partir de esta sesión se establece la siguiente división canónica de responsabilidades:
+
+1. **[`.agents/context.md`](./context.md) — Contexto Puro y Duro:**
+   - Contiene la arquitectura del sistema, entidades, modelo relacional, roles RBAC, puertos de red, especificaciones algorítmicas de matching y convenciones de código.
+   - **Queda estrictamente prohibido incluir listas de pendientes, badges de estado o matrices de avance volátiles en este archivo.**
+
+2. **[`TODO.md`](../TODO.md) — Única Fuente de Verdad para Tareas:**
+   - Centraliza la planificación del monorepo, el estado de cada issue de GitHub (#10 al #24), los hitos completados y los pendientes organizados por capa (`Backend`, `Frontend`, `DevOps`).
+
+3. **[`.agents/session-summary.md`](./session-summary.md) — Bitácora Cronológica de Sesiones:**
+   - Registra de forma acumulativa y al cierre de cada jornada de trabajo: objetivos, logros técnicos alcanzados, evidencias de ejecución de tests y prioridades para la siguiente sesión.
 
 ---
 
@@ -53,9 +70,9 @@ Se vincularon los validadores en:
   - **Suite E2E:** 100% aprobada (`npx nx e2e backend-e2e`).
   - **Linter & Build:** 0 errores en `npx nx lint backend` y compilación limpia en `npx nx build backend`.
 
-### 5. Actualización Documental y Tracking
-- [`TODO.md`](file:///Users/cristiangerster/Personal/rut.ar/TODO.md): Marcado como completado el Issue #11.
-- [`.agents/context.md`](file:///Users/cristiangerster/Personal/rut.ar/.agents/context.md): Actualizada la tabla de estado de backend marcando implementadas las Validaciones Express.
+### 5. Limpieza de Contexto y Refactor de Documentación
+- En [`.agents/context.md`](file:///Users/cristiangerster/Personal/rut.ar/.agents/context.md): Se eliminó la sección 4 de matriz de pendientes y notas desactualizadas; se preservó exclusivamente la arquitectura técnica y contratos de endpoints.
+- En [`TODO.md`](file:///Users/cristiangerster/Personal/rut.ar/TODO.md): Se incorporaron las pautas de gobernanza y se organizaron las tareas completadas y pendientes.
 
 ---
 

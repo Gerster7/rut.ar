@@ -2,7 +2,7 @@
 
 > **Documento Canónico de Referencia para Agentes de Inteligencia Artificial y Desarrolladores**  
 > **Última actualización:** Septiembre 2026  
-> **Estado del Repositorio:** Monorepo Nx en desarrollo activo (Backend con CRUDs y Auth completos; Frontend en etapa inicial; Matching y Tests en fase de implementación).
+> **Propósito:** Fuente de verdad técnica y contextual para el dominio, modelo relacional, arquitectura, contratos de API y pautas operativas de **rut.ar**. Para el backlog, estado de desarrollo y tareas activas, consulte [`TODO.md`](../TODO.md).
 
 ---
 
@@ -271,55 +271,20 @@ rut.ar/
 
 ---
 
-## 4. Matriz de Estado de Implementación
+## 4. Gestión del Backlog y Trazabilidad
 
-### 4.1 Backend
-| Componente / Funcionalidad | Detalle | Estado | Referencia de Código |
-| :--- | :--- | :---: | :--- |
-| **Docker MySQL** | Contenedor MySQL 8.0 en puerto 3307 | ✅ Implementado | `docker-compose.yml` |
-| **Modelos ORM** | `Usuario`, `Fletero`, `Negocio`, `Viaje` | ✅ Implementado | `backend/src/models/*.ts` |
-| **Auth JWT & bcrypt** | Registro, login, hash password, verificación token | ✅ Implementado | `backend/src/controllers/usuario.controller.ts`, `middlewares/auth.middleware.ts` |
-| **RBAC** | Autorización por roles (`ADMINISTRADOR`, `LOGISTICO`, `FLETERO`) | ✅ Implementado | `checkRole` en `auth.middleware.ts` |
-| **CRUD Usuarios** | Registro público/admin, login y listado protegido | ✅ Implementado | `/api/usuarios` (`usuario.routes.ts`) |
-| **CRUD Fleteros** | Get all, Get by ID, Create, Update, Delete | ✅ Implementado | `/api/fleteros` (`fletero.routes.ts`) |
-| **CRUD Negocios** | Get all, Get by ID, Create, Update, Delete | ✅ Implementado | `/api/negocios` (`negocio.routes.ts`) |
-| **CRUD Viajes** | Get all, Get by ID, Create, Update, Delete | ✅ Implementado | `/api/viajes` (`viaje.routes.ts`) |
-| **Database Seeders** | Población de prueba con datos geoespaciales reales de Argentina | ✅ Implementado | `backend/src/seed.ts` |
-| **Colección Postman** | Requests organizadas por módulos (Auth, Fleteros, Negocios, Matching) | ✅ Implementado | `postman/collections/rut.ar API/` |
-| **Módulo de Matching** | `matching.controller.ts` y vinculación de endpoints | ✅ Implementado | `backend/src/controllers/matching.controller.ts` |
-| **Fórmula Haversine** | Cálculo de distancia geodésica en km entre coordenadas | ✅ Implementado | `calcularDistanciaHaversine` en `matching.controller.ts` |
-| **Endpoint Fleteros Cercanos**| `GET /api/negocios/:id/fleteros-disponibles` | ✅ Implementado | `negocio.routes.ts` (`getFleterosDisponibles`) |
-| **Endpoint Asignar Fletero** | `POST /api/negocios/:id/asignar-fletero` | ✅ Implementado | `negocio.routes.ts` (`asignarFletero`) |
-| **Endpoint Negocios Retorno**| `GET /api/viajes/:id/negocios-retorno` | ✅ Implementado | `viaje.routes.ts` (`getNegociosRetorno`) |
-| **Validaciones Express** | Esquemas y sanitización con `express-validator` en todos los recursos | ✅ Implementado | `backend/src/validators/*.ts`, `middlewares/validation.middleware.ts` |
-| **Logging con Pino** | Salida estructurada JSON y registro de requests | ⏳ Pendiente | Instalado en `package.json` / `proposal.md` |
-| **Variables de Entorno (.env)**| Carga de config desacoplada con `dotenv` | ✅ Implementado | `dotenv/config` en `main.ts`, `database.ts` desacoplado, `.env.example` |
-| **Test Unitario Backend** | Suite de cálculo geodésico Haversine con Jest (9 tests) | ✅ Implementado | `backend/src/controllers/matching.controller.spec.ts` |
-| **Test Integración Backend** | Suite de Auth, RBAC y registro con Supertest (10 tests) | ✅ Implementado | `backend/src/controllers/auth.integration.spec.ts` |
-| **Test E2E Backend** | Target `e2e` en `backend-e2e` | ✅ Implementado | `backend-e2e/src/backend/backend.spec.ts` |
+> 📌 **Fuente Canónica del Backlog y Tareas:**  
+> Este documento (`context.md`) constituye exclusivamente una referencia canónica y estable sobre arquitectura, dominio, contratos y pautas de ingeniería del proyecto.  
+> La planificación operativa, el backlog detallado, el estado de cada tarea y la vinculación con los GitHub Issues se gestionan de manera centralizada en:  
+> - 👉 [`TODO.md`](../TODO.md) — Plan de tareas unificado del monorepo.  
+> - 👉 [GitHub Projects (Tablero Kanban)](https://github.com/users/Gerster7/projects/3) — Estado de issues #10 al #24.  
+> - 👉 [`.agents/session-summary.md`](./session-summary.md) — Bitácora cronológica de acuerdos y logros por sesión.
 
-> 📌 **Alineación de Endpoints de Matching:**  
-> En `TODO.md` se mencionan preliminarmente `GET /api/matching/fleteros` y `POST /api/matching/asignar`. Sin embargo, la colección oficial de Postman ya está armada y testeada con las rutas orientadas a recursos:  
-> - `GET /api/negocios/:id/fleteros-disponibles`  
-> - `POST /api/negocios/:id/asignar-fletero` (Body: `{ "fleteroId": number }`)  
-> - `GET /api/viajes/:id/negocios-retorno`  
-> **Criterio obligatorio:** La implementación debe respetar estas rutas canónicas de Postman para garantizar la interoperabilidad con las pruebas y colecciones existentes.
-
-### 4.2 Frontend
-| Componente / Funcionalidad | Detalle | Estado | Referencia de Código |
-| :--- | :--- | :---: | :--- |
-| **Scaffold Angular v22** | Configuración base en Nx Monorepo | ✅ Implementado | `frontend/` |
-| **Configuración Proxy API** | Redirección de peticiones `/api` al backend Express | ✅ Implementado | `frontend/proxy.conf.json` |
-| **Librería UI** | Angular Material / PrimeNG / Tailwind | ⏳ Pendiente | Tarea en `TODO.md` |
-| **NgRx SignalStore** | Stores de Auth, Negocios, Viajes y Matching | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Leaflet.js + OSM** | Integración del mapa y estilos en SCSS | ⏳ Pendiente | Tarea en `TODO.md` |
-| **AuthService & Guards** | Login/registro, `AuthGuard` y `AuthInterceptor` (Bearer) | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Vistas de Negocios** | Lista con filtros (`NegociosList`) y detalle (`NegocioDetail`) | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Vistas de Viajes** | Lista con filtros (`ViajesList`) y detalle (`ViajeDetail`) | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Componente de Mapa** | `MapComponent` interactivo con pines de carga y fleteros | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Flujo Completo de Matching**| Buscar fleteros cercanos y confirmar asignación desde UI | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Test Unitario Frontend** | Prueba unitaria de componente Angular con Vitest | ⏳ Pendiente | Tarea en `TODO.md` |
-| **Test E2E Frontend** | Flujo completo e2e con Playwright | ⏳ Pendiente | `frontend-e2e` |
+### 4.1 Alineación Canónica de Endpoints de Matching
+La colección oficial de Postman y la suite de pruebas del backend operan sobre rutas orientadas a recursos. Cualquier desarrollo o cliente frontend debe respetar estrictamente estas rutas canónicas:  
+- `GET /api/negocios/:id/fleteros-disponibles` — Sugerencias de fleteros cercanos por proximidad Haversine y peso.  
+- `POST /api/negocios/:id/asignar-fletero` (Body: `{ "fleteroId": number, "fechaFinEstimada"?: string }`) — Asignación atómica de fletero y generación de Viaje bajo transacción Sequelize.  
+- `GET /api/viajes/:id/negocios-retorno` — Oportunidades de carga de retorno para resolver el problema del retorno vacío.
 
 ---
 
@@ -351,7 +316,7 @@ El proyecto se presenta para la materia **Desarrollo de Software (DSW)** de la *
 
 ### 5.2 Requisitos para Aprobación Directa (AD)
 Para obtener la Aprobación Directa se exigen los requisitos de regularidad más las siguientes adiciones:
-1. **CRUDs Completos**: Implementación de todos los CRUDs de las entidades del dominio (`Usuario`, `Fletero`, `Negocio`, `Viaje`). *(Cumplido en backend para Fletero, Negocio y Viaje; Usuario dispone de register, login y listado, restando implementar detalle, modificación y baja para completar el CRUD formal requerido por cátedra)*.
+1. **CRUDs Completos**: Implementación de todos los CRUDs de las entidades del dominio (`Usuario`, `Fletero`, `Negocio`, `Viaje`).
 2. **Mínimo 2 Epics / Casos de Uso Relacionados**:
    - **Epic 1**: Buscar Fleteros disponibles para un Negocio nuevo y Asignar Fletero.
    - **Epic 2**: Buscar un Negocio de retorno para un Viaje activo (resolución del retorno vacío).
