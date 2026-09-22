@@ -291,7 +291,7 @@ rut.ar/
 | **Endpoint Fleteros Cercanos**| `GET /api/negocios/:id/fleteros-disponibles` | ✅ Implementado | `negocio.routes.ts` (`getFleterosDisponibles`) |
 | **Endpoint Asignar Fletero** | `POST /api/negocios/:id/asignar-fletero` | ✅ Implementado | `negocio.routes.ts` (`asignarFletero`) |
 | **Endpoint Negocios Retorno**| `GET /api/viajes/:id/negocios-retorno` | ✅ Implementado | `viaje.routes.ts` (`getNegociosRetorno`) |
-| **Validaciones Express** | Esquemas con `express-validator` en los endpoints | ⏳ Pendiente | Instalado en `package.json` / `TODO.md` |
+| **Validaciones Express** | Esquemas y sanitización con `express-validator` en todos los recursos | ✅ Implementado | `backend/src/validators/*.ts`, `middlewares/validation.middleware.ts` |
 | **Logging con Pino** | Salida estructurada JSON y registro de requests | ⏳ Pendiente | Instalado en `package.json` / `proposal.md` |
 | **Variables de Entorno (.env)**| Carga de config desacoplada con `dotenv` | ✅ Implementado | `dotenv/config` en `main.ts`, `database.ts` desacoplado, `.env.example` |
 | **Test Unitario Backend** | Suite de cálculo geodésico Haversine con Jest (9 tests) | ✅ Implementado | `backend/src/controllers/matching.controller.spec.ts` |

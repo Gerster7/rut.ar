@@ -19,7 +19,7 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 
 **1. Backend & Hardening:**
 - [x] [#10](https://github.com/Gerster7/rut.ar/issues/10) - `[BE] feat(usuarios)`: Completar CRUD formal de `Usuario` para cátedra DSW (`GET /:id`, `PUT /:id`, `DELETE /:id`).
-- [ ] [#11](https://github.com/Gerster7/rut.ar/issues/11) - `[BE] feat(validation)`: Validar entradas con `express-validator` en todos los controladores.
+- [x] [#11](https://github.com/Gerster7/rut.ar/issues/11) - `[BE] feat(validation)`: Validar entradas con `express-validator` en todos los controladores.
 - [ ] [#12](https://github.com/Gerster7/rut.ar/issues/12) - `[BE] feat(logging)`: Integrar logger estructurado `pino` y middleware `pino-http` en `main.ts`.
 
 **2. Testing Automático (Backend):**
