@@ -295,7 +295,7 @@ rut.ar/
 | **Logging con Pino** | Salida estructurada JSON y registro de requests | ⏳ Pendiente | Instalado en `package.json` / `proposal.md` |
 | **Variables de Entorno (.env)**| Carga de config desacoplada con `dotenv` | ✅ Implementado | `dotenv/config` en `main.ts`, `database.ts` desacoplado, `.env.example` |
 | **Test Unitario Backend** | Suite de cálculo geodésico Haversine con Jest (9 tests) | ✅ Implementado | `backend/src/controllers/matching.controller.spec.ts` |
-| **Test Integración Backend** | Test de endpoint (Auth / Creación) con Jest/Supertest | ⏳ Pendiente | Tarea en `TODO.md` |
+| **Test Integración Backend** | Suite de Auth, RBAC y registro con Supertest (10 tests) | ✅ Implementado | `backend/src/controllers/auth.integration.spec.ts` |
 | **Test E2E Backend** | Target `e2e` en `backend-e2e` | ✅ Implementado | `backend-e2e/src/backend/backend.spec.ts` |
 
 > 📌 **Alineación de Endpoints de Matching:**  

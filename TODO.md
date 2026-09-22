@@ -24,7 +24,7 @@ Este plan estructura las tareas pendientes basándose en los requerimientos de l
 
 **2. Testing Automático (Backend):**
 - [x] [#13](https://github.com/Gerster7/rut.ar/issues/13) - `[BE-TEST] test(geo)`: Suite de pruebas unitarias para cálculo Haversine con Jest (`calcularDistanciaHaversine`).
-- [ ] [#14](https://github.com/Gerster7/rut.ar/issues/14) - `[BE-TEST] test(auth)`: Prueba de integración con Supertest sobre Auth y RBAC (`POST /api/usuarios/login`).
+- [x] [#14](https://github.com/Gerster7/rut.ar/issues/14) - `[BE-TEST] test(auth)`: Prueba de integración con Supertest sobre Auth y RBAC (`POST /api/usuarios/login`).
 
 ---
 

@@ -1,51 +1,40 @@
-# Resumen de Sesión — 12 de Septiembre de 2026
+# Resumen de Sesión — 19 de Septiembre de 2026
 
 ## 🎯 Objetivos de la Sesión
-1. Limpiar scripts temporales de automatización de issues del repositorio.
-2. Configurar el entorno de Docker en macOS tras el formateo del equipo del usuario.
-3. Levantar la base de datos MySQL, sembrar datos de prueba y poner en marcha el backend Express.
-4. Configurar Postman para pruebas de API manuales y sincronización entre Mac y Windows.
-5. Iniciar la etapa de Testing Automatizado de Backend (Requisito estricto DSW para Aprobación Directa).
+1. Revisar el estado general del repositorio, infraestructura y tareas pendientes en el plan DSW.
+2. Implementar el **Issue #14 (`[BE-TEST] test(auth)`)**: testing de integración con Supertest sobre Autenticación y RBAC (requisito de cátedra para Aprobación Directa).
+3. Asegurar modularización de la aplicación Express para soportar pruebas HTTP sin levantar servidores persistentes en puertos ocupados.
 
 ---
 
 ## 🚀 Logros y Cambios Realizados
 
-### 1. Limpieza de Repositorio & Refactor
-- **Eliminación de Scripts Temporales:** Se removieron `scripts/create-github-issues.mjs` y `scripts/add-issues-to-project.mjs` una vez cumplida su función de carga inicial en GitHub (Commit `698bd91`).
-- **Actualización de `TODO.md`:** Sincronizado el estado del tablero Kanban de GitHub Projects ([rut.ar - Tareas](https://github.com/users/Gerster7/projects/3)).
+### 1. Instalación de Dependencias de Testing
+- Se instalaron `supertest` y `@types/supertest` como `devDependencies` mediante `pnpm add -D supertest @types/supertest`.
 
-### 2. Infraestructura de Desarrollo Local (macOS / Apple Silicon)
-- **Instalación de OrbStack:** Se instaló **OrbStack** (`v2.2.3`) vía Homebrew (`brew install --cask orbstack`) como alternativa nativa y ligera a Docker Desktop (~100 MB RAM vs 3 GB).
-- **Contenedor MySQL Activo:** Levanta MySQL 8.0 (`rutar_mysql`) en puerto `3307` persistido en volumen Docker (`docker compose up -d db`).
-- **Base de Datos Sembrada:** Ejecutado exitosamente el seeder del ORM (`backend/src/seed.ts`) poblando:
-  - 1 Usuario Administrador (`admin@rutar.com`) y 3 Logísticos (`Prueba123`).
-  - 10 Fleteros con vehículos y geolocalizaciones GPS reales de Argentina.
-  - 20 Negocios de transporte de carga con coordenadas de origen/destino.
-  - 50 Viajes con estados y fechas estimadas de entrega.
-- **Corrección de Tipado en `backend-e2e`:** Se tipó `globalThis` con `Record<string, unknown>` en `backend-e2e/src/support/global-setup.ts` y `global-teardown.ts` resolviendo error `TS7017` (`noImplicitAny`) y logrando 100% de tests E2E aprobados (Commit `f634db3`).
+### 2. Refactor y Modularización de Express (`app.ts`)
+- Se extrajo la configuración de Express, middlewares (`cors`, `express.json`), assets estáticos y montaje de rutas a [`backend/src/app.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/app.ts).
+- Se desacopló la instancia `app` de la llamada `app.listen(...)` en [`backend/src/main.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/main.ts), permitiendo que Supertest monte servidores efímeros aislados en memoria durante los tests.
+- Se preservó la compatibilidad total de build (`npx nx build backend`) y linter (`npx nx lint backend`).
 
-### 3. Puesta a Punto de Postman & Servidores
-- **Servidor Backend Express:** Iniciado y respondiendo en segundo plano en `http://localhost:3333/api`.
-- **Instalación de Postman:** Instalada la aplicación de escritorio en macOS vía Homebrew (`brew install --cask postman`).
-- **Colección JSON Oficial v2.1:** Para resolver incompatibilidad del botón "Import" con carpetas de YAMLs sueltos, se empaquetó toda la API en `postman/rut.ar_API.postman_collection.json` con todos los módulos (`Auth`, `Usuarios`, `Fleteros`, `Negocios`, `Viajes`, `Matching`), variables globales y script de autoguardado de JWT en `Login` (Commit `4d24081`).
-- **Importación Exitosa:** Colección importada correctamente en el workspace `rut.ar` de Postman.
+### 3. Suite de Integración con Supertest — Issue #14 Cerrado
+- Se implementó la suite completa de integración en [`backend/src/controllers/auth.integration.spec.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/controllers/auth.integration.spec.ts) con **10 casos de prueba**:
+  1. **Login exitoso (`POST /api/usuarios/login`):** Validación de status `200 OK`, generación de token JWT, estructura del objeto `usuario` (`id`, `email`, `rol`).
+  2. **Verificación de Claims JWT:** Inspección del payload decodificado con `jwt.decode` validando `id`, `email: 'admin@rutar.com'`, `rol: 'ADMINISTRADOR'` y timestamp de expiración (`exp`).
+  3. **Usuario inexistente (`POST /api/usuarios/login`):** Rechazo con `404 Not Found` y mensaje `'Usuario no encontrado'`.
+  4. **Contraseña incorrecta (`POST /api/usuarios/login`):** Rechazo con `401 Unauthorized` y mensaje `'Contraseña incorrecta'`.
+  5. **Endpoint protegido sin token (`GET /api/usuarios`):** Rechazo con `401 Unauthorized` y mensaje `'Acceso denegado, token no proporcionado'`.
+  6. **Endpoint protegido con token inválido/corrupto (`GET /api/usuarios`):** Rechazo con `401 Unauthorized` y mensaje `'Token inválido o expirado'`.
+  7. **Control RBAC por Rol (`GET /api/usuarios`):** Rechazo con `403 Forbidden` cuando un usuario con rol `FLETERO` intenta consultar un endpoint exclusivo de `ADMINISTRADOR`.
+  8. **Acceso autorizado de Administrador (`GET /api/usuarios`):** Respuesta `200 OK` con array de usuarios y exclusión estricta del campo sensible `password` en todas las entidades.
+  9. **Registro público (`POST /api/usuarios/register`):** Creación exitosa (`201 Created`) de usuario con rol predeterminado `USUARIO`.
+  10. **Validaciones de Registro:** Rechazo con `400 Bad Request` ante email duplicado y `403 Forbidden` ante intentos no autenticados de registrar roles privilegiados (`ADMINISTRADOR`).
+- Ciclo de vida limpio con Sequelize: conexión vía `sequelize.authenticate()` y cierre explícito en `afterAll` con `await sequelize.close()`, evitando fugas de memoria o handles abiertos en Jest.
+- **Resultado:** 19/19 tests pasando al 100% (9 unitarios en `matching.controller.spec.ts` + 10 de integración en `auth.integration.spec.ts`) en ~1.5 segundos (`npx nx test backend`).
 
-### 4. Testing Automatizado Backend — Issue #13 Cerrado
-- **Suite de Tests Unitarios (`matching.controller.spec.ts`):**
-  - Creado `backend/src/controllers/matching.controller.spec.ts` para validar la fórmula geodésica de Haversine (`calcularDistanciaHaversine`).
-  - **9 Casos de Prueba Implementados y Aprobados:**
-    1. Distancias reales en Argentina: Buenos Aires <-> Rosario (~278.6 km).
-    2. Distancias reales en Argentina: Rosario <-> Córdoba (~374.7 km).
-    3. Distancias reales en Argentina: Rosario <-> Santa Fe (~149 km).
-    4. Distancia idéntica (mismo punto de origen y destino = 0 km).
-    5. Propiedad de simetría conmutativa: d(A, B) === d(B, A).
-    6. Cruce de cuadrantes y meridiano cero (Madrid <-> Londres, ~1264 km).
-    7. Antípodas planetarias (mitad de la circunferencia terrestre, ~20.015 km).
-    8. Control de excepciones ante entradas NaN.
-    9. Control de excepciones ante entradas null o undefined.
-  - **Resultado:** 9/9 tests pasando en 0.6 segundos con `npx nx test backend`.
-  - **Commit & Cierre:** Commit `0c235b3` subido a `origin/main` (`Closes #13`).
+### 4. Actualización Documental y Tracking
+- [`TODO.md`](file:///Users/cristiangerster/Personal/rut.ar/TODO.md): Marcado como completado el Issue #14.
+- [`.agents/context.md`](file:///Users/cristiangerster/Personal/rut.ar/.agents/context.md): Actualizada la tabla de estado de backend marcando implementado el Test de Integración.
 
 ---
 
@@ -53,7 +42,6 @@
 
 | Prioridad | Issue / Tarea | Descripción |
 | :---: | :--- | :--- |
-| 1 | [#14](https://github.com/Gerster7/rut.ar/issues/14) `[BE-TEST] test(auth)` | **Test de integración con Supertest:** Instalar `supertest` y `@types/supertest`, crear suite para `POST /api/usuarios/login` (verificar JWT válido con 200 OK y rechazos con 401/404). |
-| 2 | [#11](https://github.com/Gerster7/rut.ar/issues/11) `[BE] feat(validation)` | Validación y sanitización de esquemas de entrada con `express-validator` en endpoints del backend. |
-| 3 | [#12](https://github.com/Gerster7/rut.ar/issues/12) `[BE] feat(logging)` | Integración de logger estructurado `pino` y middleware `pino-http` en `main.ts`. |
-| 4 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicialización de Frontend: configuración de `provideHttpClient`, interceptores, estilos base responsive (SM/MD/LG). |
+| 1 | [#11](https://github.com/Gerster7/rut.ar/issues/11) `[BE] feat(validation)` | Validación y sanitización de esquemas de entrada con `express-validator` en endpoints del backend. |
+| 2 | [#12](https://github.com/Gerster7/rut.ar/issues/12) `[BE] feat(logging)` | Integración de logger estructurado `pino` y middleware `pino-http` en `main.ts`. |
+| 3 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicialización de Frontend: configuración de `provideHttpClient`, interceptores, estilos base responsive (SM/MD/LG). |
