@@ -7,7 +7,8 @@ export class Fletero extends Model {
   @ForeignKey(() => Usuario)
   @Column({
     type: DataType.INTEGER,
-    allowNull: false
+    allowNull: false,
+    unique: true
   })
   usuarioId!: number;
 

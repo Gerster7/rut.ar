@@ -47,13 +47,16 @@ Para garantizar la consistencia entre agentes de IA y desarrolladores, rigen las
   - Epic 1 (Asignación atómica): `POST /api/negocios/:id/asignar-fletero` (transacción Sequelize atómica: Negocio -> 'asignado' y creación de Viaje).
   - Epic 2 (Retorno Vacío - Core DSW): `GET /api/viajes/:id/negocios-retorno` (búsqueda de oportunidades abiertas cercanas al destino de descarga).
 - [x] **Validaciones y Hardening:** Validación y sanitización de esquemas de entrada con `express-validator` en todos los recursos ([#11](https://github.com/Gerster7/rut.ar/issues/11)).
+- [x] **Logging Estructurado y Hardening:** Logger centralizado `pino` y middleware `pino-http`, pool de conexiones Sequelize con timeout, captura de restricciones de clave foránea (`SequelizeForeignKeyConstraintError`), anti-IDOR en Negocios y blindaje 1:1 en Fleteros ([#12](https://github.com/Gerster7/rut.ar/issues/12)).
 - [x] **Testing Automatizado de Backend (Requisito Formal DSW):**
   - Unitario: Suite geodésica de fórmula Haversine con Jest ([#13](https://github.com/Gerster7/rut.ar/issues/13) - 9 tests en `matching.controller.spec.ts`).
   - Integración: Suite de Auth, RBAC y validaciones con Supertest ([#14](https://github.com/Gerster7/rut.ar/issues/14) - 27 tests en `auth.integration.spec.ts` y `validation.integration.spec.ts`).
+  - Integración Matching: Suite completa para Epics 1 y 2 con Supertest (6 tests en `matching.integration.spec.ts`).
   - Integración E2E: Suite base de backend con Axios (`backend-e2e`).
+  - **Total:** 42/42 tests pasando (100% green).
 
 ### Pendiente ⏳
-- [ ] [#12](https://github.com/Gerster7/rut.ar/issues/12) - `[BE] feat(logging)`: Integrar logger estructurado `pino` y middleware `pino-http` en `main.ts`.
+*Ninguno (Backend 100% completado).*
 
 ---
 

@@ -5,8 +5,7 @@ const ESTADOS_NEGOCIO = ['abierto', 'asignado', 'en_proceso', 'completado', 'can
 
 export const createNegocioValidator = [
   body('usuarioId')
-    .notEmpty()
-    .withMessage('El usuarioId es requerido')
+    .optional()
     .isInt({ gt: 0 })
     .withMessage('El usuarioId debe ser un número entero positivo'),
   body('descripcion')

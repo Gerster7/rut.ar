@@ -54,9 +54,16 @@ export const getFleteroById = async (req: Request, res: Response): Promise<any> 
 
 export const createFletero = async (req: Request, res: Response): Promise<any> => {
   try {
+    const existingFletero = await Fletero.findOne({ where: { usuarioId: req.body.usuarioId } });
+    if (existingFletero) {
+      return res.status(400).json({ error: 'El usuario ya tiene un perfil de fletero registrado' });
+    }
     const nuevoFletero = await Fletero.create(req.body);
     res.status(201).json(nuevoFletero);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({ error: 'El usuarioId especificado no existe' });
+    }
     res.status(500).json({ error: 'Error al crear el fletero', detalles: error });
   }
 };
@@ -80,7 +87,10 @@ export const deleteFletero = async (req: Request, res: Response): Promise<any> =
     
     await fletero.destroy();
     res.json({ message: 'Fletero eliminado correctamente' });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({ error: 'No se puede eliminar el fletero porque tiene viajes asociados' });
+    }
     res.status(500).json({ error: 'Error al eliminar el fletero' });
   }
 };

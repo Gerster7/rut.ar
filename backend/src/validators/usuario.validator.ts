@@ -2,7 +2,7 @@ import { body, param } from 'express-validator';
 import { validateRequest } from '../middlewares/validation.middleware';
 
 const ROLES_VALIDOS = ['ADMINISTRADOR', 'LOGISTICO', 'FLETERO', 'USUARIO'];
-const ROLES_REGISTRO = [...ROLES_VALIDOS, 'OPERADOR'];
+const ROLES_REGISTRO = ROLES_VALIDOS;
 
 export const registerUsuarioValidator = [
   body('email')

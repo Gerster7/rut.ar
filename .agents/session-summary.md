@@ -76,9 +76,63 @@ Se vincularon los validadores en:
 
 ---
 
+## 📌 Próximos Pasos (Completados en Sesión Siguiente)
+
+| Prioridad | Issue / Tarea | Descripción |
+| :---: | :--- | :--- |
+| 1 | [#12](https://github.com/Gerster7/rut.ar/issues/12) `[BE] feat(logging)` | Integración de logger estructurado `pino` y middleware `pino-http` en `main.ts`. *(Completado el 26/09/2026)* |
+| 2 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicialización de Frontend: configuración de `provideHttpClient`, interceptores, estilos base responsive (SM/MD/LG). |
+
+---
+
+# Resumen de Sesión — 26 de Septiembre de 2026
+
+## 🎯 Objetivos de la Sesión
+1. Completar al 100% el Backend cerrando el **Issue #12 (`[BE] feat(logging)`)** mediante la integración de logger estructurado `pino` y middleware `pino-http`.
+2. Ejecutar las correcciones críticas de integridad, seguridad y robustez identificadas por la triple auditoría técnica:
+   - Blindaje 1:1 estricto entre `Usuario` y `Fletero` (`unique: true`).
+   - Captura de restricciones de clave foránea (`SequelizeForeignKeyConstraintError`) retornando `400 Bad Request` en lugar de fallas no controladas `500`.
+   - Protección Anti-IDOR y validación de autoría en actualización y baja de `Negocio`.
+   - Saneamiento de catálogos de roles eliminando valores espurios (`OPERADOR` -> normalizado a `USUARIO`).
+3. Crear una suite de integración con Supertest para verificar exhaustivamente los flujos de negocio de los Epics 1 y 2 (búsqueda de fleteros por Haversine, asignación atómica y sugerencias de retorno vacío).
+4. Actualizar la colección canónica de Postman con el endpoint `PATCH /api/fleteros/mi-ubicacion`.
+
+---
+
+## 🚀 Logros y Cambios Realizados
+
+### 1. Logger Estructurado Centralizado (`pino` & `pino-http`) — Issue #12 Cerrado
+- Se implementó [`backend/src/config/logger.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/config/logger.ts) con soporte para niveles dinámicos (`silent` en entorno de testing, `info`/`debug` en desarrollo y producción).
+- Se instrumentó `pino-http` en [`backend/src/app.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/app.ts) para el registro estructurado automático de requests y responses HTTP.
+- Se refactorizó [`backend/src/main.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/main.ts) y [`backend/src/config/database.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/config/database.ts), reemplazando `console.log` por llamadas a `logger.info`, `logger.debug` y `logger.error`.
+- Se configuró el pool de conexiones de Sequelize (`max: 10, min: 0, acquire: 15000, idle: 5000`) y timeout de conexión de 10s.
+
+### 2. Hardening de Integridad Referencial y Seguridad (Anti-IDOR)
+- **Fletero 1:1:** Añadido `unique: true` al decorador `@Column` de `usuarioId` en [`backend/src/models/fletero.model.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/models/fletero.model.ts), impidiendo que un usuario se vincule a más de un perfil de fletero.
+- **Manejo Seguro de Foreign Keys:** En [`fletero.controller.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/controllers/fletero.controller.ts) y [`negocio.controller.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/controllers/negocio.controller.ts), se capturan excepciones `SequelizeForeignKeyConstraintError` para responder con un `400 Bad Request` descriptivo si se intenta borrar un registro con viajes asociados.
+- **Control de Autoría Anti-IDOR en Negocios:** En `createNegocio`, el `usuarioId` se infiere directamente del token JWT verificado (`req.user.id`). En `updateNegocio` y `deleteNegocio`, se valida que quien ejecuta sea el creador del negocio o un `ADMINISTRADOR`.
+- **Saneamiento de Roles:** Se corrigió [`usuario.validator.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/validators/usuario.validator.ts) y [`rut.ar_API.postman_collection.json`](file:///Users/cristiangerster/Personal/rut.ar/postman/rut.ar_API.postman_collection.json) para apegarse al catálogo canónico de roles (`ADMINISTRADOR`, `LOGISTICO`, `FLETERO`, `USUARIO`).
+
+### 3. Suite de Integración de Epics 1 y 2 ([`matching.integration.spec.ts`](file:///Users/cristiangerster/Personal/rut.ar/backend/src/controllers/matching.integration.spec.ts))
+Se implementaron 6 pruebas de integración exhaustivas con Supertest cubriendo el core logístico:
+- Búsqueda de fleteros ordenados por distancia geodésica Haversine y filtrados por capacidad.
+- Flujo de asignación atómica de fletero (`POST /api/negocios/:id/asignar-fletero`), verificando transición de estado del Negocio a `asignado` y creación del registro de `Viaje` en una sola transacción.
+- Detección de retornos vacíos (`GET /api/viajes/:id/negocios-retorno`) ordenados por desvío geodésico desde el destino de descarga.
+
+### 4. Colección de Postman Actualizada
+- Se incorporó la petición `Update Mi Ubicacion (Fletero)` (`PATCH {{baseUrl}}/api/fleteros/mi-ubicacion`) con Bearer token en [`postman/rut.ar_API.postman_collection.json`](file:///Users/cristiangerster/Personal/rut.ar/postman/rut.ar_API.postman_collection.json).
+
+### 5. Métricas de Calidad y Resultados de Testing
+- **Tests de Backend:** **42/42 tests pasando (100%)** en 4 suites de Jest (`matching.controller.spec.ts`, `validation.integration.spec.ts`, `matching.integration.spec.ts`, `auth.integration.spec.ts`) en ~1.5 segundos.
+- **Linter:** `0` errores en `npx nx lint backend`.
+- **Build:** Compilación exitosa en `npx nx build backend` con Webpack.
+- **Estado de Backend:** **100% completado.**
+
+---
+
 ## 📌 Próximos Pasos (Para la Próxima Sesión)
 
 | Prioridad | Issue / Tarea | Descripción |
 | :---: | :--- | :--- |
-| 1 | [#12](https://github.com/Gerster7/rut.ar/issues/12) `[BE] feat(logging)` | Integración de logger estructurado `pino` y middleware `pino-http` en `main.ts`. |
-| 2 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicialización de Frontend: configuración de `provideHttpClient`, interceptores, estilos base responsive (SM/MD/LG). |
+| 1 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicializar el Core de Frontend en Angular 22: configuración de `provideHttpClient` con interceptores, tipado base, layout responsive Mobile-First y breakpoints obligatorios (SM <768px, MD 768-1024px, LG >1024px). |
+| 2 | [#16](https://github.com/Gerster7/rut.ar/issues/16) `[FE] feat(auth)` | Módulo de autenticación en Frontend (`AuthService` con Signals, vistas de Login/Registro, Guards e Interceptor JWT). |

@@ -129,7 +129,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"nuevo@example.com\",\n  \"password\": \"password123\",\n  \"rol\": \"operador\"\n}",
+              "raw": "{\n  \"email\": \"nuevo@example.com\",\n  \"password\": \"password123\",\n  \"rol\": \"usuario\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -424,6 +424,49 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Juan Actualizado\",\n  \"telefono\": \"9988776655\",\n  \"latitudActual\": -34.61,\n  \"longitudActual\": -58.39\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Mi Ubicacion (Fletero)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/fleteros/mi-ubicacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleteros",
+                "mi-ubicacion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitud\": -34.6037,\n  \"longitud\": -58.3816\n}",
               "options": {
                 "raw": {
                   "language": "json"
