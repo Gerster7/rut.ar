@@ -1,5 +1,5 @@
 <div class="app-layout">
-  <!-- Barra lateral responsive -->
+  <!-- Barra lateral responsive (Drawer en mobile / sidebar en desktop) -->
   <app-sidebar 
     [mobileOpen]="mobileSidebarOpen()" 
     (closeMobile)="closeMobileSidebar()">
@@ -15,4 +15,7 @@
 
     <app-footer></app-footer>
   </div>
+
+  <!-- Barra de Navegación Inferior (Tabs fijas en Mobile) -->
+  <app-bottom-tabs></app-bottom-tabs>
 </div>

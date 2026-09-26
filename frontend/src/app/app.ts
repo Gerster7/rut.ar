@@ -3,10 +3,17 @@ import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './core/layout/sidebar/sidebar.component';
 import { HeaderComponent } from './core/layout/header/header.component';
 import { FooterComponent } from './core/layout/footer/footer.component';
+import { BottomTabsComponent } from './core/layout/bottom-tabs/bottom-tabs.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
+  imports: [
+    RouterOutlet,
+    SidebarComponent,
+    HeaderComponent,
+    FooterComponent,
+    BottomTabsComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

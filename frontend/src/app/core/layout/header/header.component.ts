@@ -5,8 +5,8 @@ import { Component, output } from '@angular/core';
   template: `
     <header class="topbar">
       <div class="topbar-left">
-        <!-- Toggle Hamburguesa para Mobile -->
-        <button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Abrir Menú">
+        <!-- Toggle Hamburguesa para Mobile / Tablet -->
+        <button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Abrir Menú Lateral">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -16,19 +16,28 @@ import { Component, output } from '@angular/core';
 
         <div class="topbar-title-wrap">
           <h1 class="page-title">Centro de Operaciones Logísticas</h1>
-          <span class="page-subtitle">Monitoreo de Cargas y Retorno Vacío</span>
+          <span class="page-subtitle">Monitoreo Geoespacial & Retorno Vacío</span>
         </div>
       </div>
 
       <div class="topbar-right">
-        <!-- Badge de Estado de Conexión -->
+        <!-- Badge de Estado de Conexión (Desktop/Tablet) -->
         <div class="system-status">
           <span class="status-dot"></span>
-          <span class="status-text">Backend API Conectado</span>
+          <span class="status-text">Backend Online</span>
         </div>
 
+        <!-- Botón de Filtros (Destacado en Mobile superior derecha) -->
+        <button class="btn btn-secondary btn-sm filter-btn" (click)="openFilters.emit()" aria-label="Abrir Filtros del Mapa">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          <span class="filter-label">Filtros</span>
+        </button>
+
+        <!-- Botón Nueva Carga -->
         <button class="btn btn-primary btn-sm create-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -55,13 +64,13 @@ import { Component, output } from '@angular/core';
     .topbar-left {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.85rem;
     }
 
     .menu-btn {
       display: none;
       color: var(--text-primary);
-      padding: 0.5rem;
+      padding: 0.45rem;
       border-radius: var(--radius-sm);
       background: rgba(255, 255, 255, 0.05);
 
@@ -90,7 +99,7 @@ import { Component, output } from '@angular/core';
     .topbar-right {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .system-status {
@@ -117,10 +126,21 @@ import { Component, output } from '@angular/core';
       color: var(--color-success);
     }
 
-    /* Adaptación Responsive */
+    .filter-btn {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--color-accent);
+
+      &:hover {
+        background: rgba(245, 158, 11, 0.2);
+        border-color: var(--color-accent);
+      }
+    }
+
+    /* Adaptación Mobile Estricta (SM < 768px) */
     @media (max-width: 767px) {
       .topbar {
-        padding: 0 1rem;
+        padding: 0 0.85rem;
       }
 
       .menu-btn {
@@ -129,20 +149,21 @@ import { Component, output } from '@angular/core';
         justify-content: center;
       }
 
-      .page-subtitle, .system-status {
+      .page-subtitle, .system-status, .create-btn {
         display: none;
       }
 
       .page-title {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
       }
 
-      .create-btn .btn-text {
-        display: none;
+      .filter-btn {
+        padding: 0.4rem 0.65rem;
       }
     }
   `]
 })
 export class HeaderComponent {
   toggleSidebar = output<void>();
+  openFilters = output<void>();
 }

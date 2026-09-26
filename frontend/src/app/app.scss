@@ -26,4 +26,9 @@
   .app-main-wrapper {
     margin-left: 0;
   }
+
+  .app-main-content {
+    /* Espacio para la barra fija inferior de pestañas en mobile */
+    padding-bottom: 64px;
+  }
 }

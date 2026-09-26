@@ -145,6 +145,18 @@ Se implementaron 6 pruebas de integración exhaustivas con Supertest cubriendo e
   - **Linter Frontend:** `0` errores en `npx nx lint frontend`.
   - **Build Frontend:** Compilación exitosa en `npx nx build frontend`.
 
+### 7. Refactorización Mobile UX/UI & Sincronización Bounding Box (Mapa-Tabla)
+- **Barra de Navegación Inferior Móvil ([`BottomTabsComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/layout/bottom-tabs/bottom-tabs.component.ts)):**
+  - Barra de pestañas fija inferior (`SM < 768px`) con iconos modernos de navegación rápida (Cargas, Matching, Viajes, Fleteros), respetando el área segura (`env(safe-area-inset-bottom)`).
+- **Botón de Filtros Superior Derecho ([`HeaderComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/layout/header/header.component.ts)):**
+  - Botón de acceso directo a filtros en la esquina superior derecha en mobile, desplegando un drawer con selector de estado, cuadrante geográfico y toggle de sincronización.
+- **Detalle de Cargas como Popup en el Mapa ([`DashboardComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/features/dashboard/dashboard.component.ts)):**
+  - La ficha técnica del negocio seleccionado ahora se despliega como una tarjeta/popup flotante sobre el mapa al interactuar con cualquier marcador o fila, liberando espacio en pantalla.
+- **Sincronización Geoespacial Bounding Box (Mapa &rarr; Tabla):**
+  - Implementación reactiva con Angular `computed()`: la tabla de cargas se sincroniza matemáticamente con el área visible actual del mapa (`latMin`, `latMax`, `lngMin`, `lngMax`).
+  - Al desplazarse al Oeste (Cañada de Gómez / Armstrong), los negocios de Rosario quedan fuera de encuadre y desaparecen en tiempo real de la tabla. Al desplazarse al Este (Rosario), desaparecen las cargas del oeste.
+  - Presets de paneo rápido: `Oeste (Cañada de Gómez)`, `Toda la Región`, `Este (Rosario)`, `Norte (San Jorge / Santa Fe)`.
+
 ---
 
 ## 📌 Próximos Pasos (Para la Próxima Sesión)
