@@ -1,2 +1,18 @@
-<app-nx-welcome></app-nx-welcome>
-<router-outlet></router-outlet>
+<div class="app-layout">
+  <!-- Barra lateral responsive -->
+  <app-sidebar 
+    [mobileOpen]="mobileSidebarOpen()" 
+    (closeMobile)="closeMobileSidebar()">
+  </app-sidebar>
+
+  <!-- Contenedor Principal (Header + Contenido Router + Footer) -->
+  <div class="app-main-wrapper">
+    <app-header (toggleSidebar)="toggleMobileSidebar()"></app-header>
+
+    <main class="app-main-content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <app-footer></app-footer>
+  </div>
+</div>

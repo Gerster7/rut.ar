@@ -65,10 +65,10 @@ Para garantizar la consistencia entre agentes de IA y desarrolladores, rigen las
 ### Completado ✅
 - [x] **Scaffold del Proyecto:** Aplicación `frontend` en Nx monorepo con Angular v22 Standalone (Signals, `inject()`, sin `NgModule`).
 - [x] **Configuración de Proxy:** Proxy reverso configurado en `frontend/proxy.conf.json` apuntando a `http://localhost:3333`.
+- [x] [#15](https://github.com/Gerster7/rut.ar/issues/15) - `[FE] feat(core)`: Setup de Angular 22, `provideHttpClient(withFetch())`, design tokens basados en Figma (midnight/indigo), layout shell responsive (breakpoints DSW: SM <768px, MD 768-1024px, LG >1024px) con `SidebarComponent`, `HeaderComponent`, `FooterComponent` y vista `DashboardComponent`.
 
 ### Pendiente ⏳
 **1. Configuración Core & Auth:**
-- [ ] [#15](https://github.com/Gerster7/rut.ar/issues/15) - `[FE] feat(core)`: Setup de Angular 22, `provideHttpClient(withInterceptors([...]))` y layout base responsive (breakpoints SM, MD, LG).
 - [ ] [#16](https://github.com/Gerster7/rut.ar/issues/16) - `[FE] feat(auth)`: Módulo de autenticación (`AuthService`, `LoginComponent`, `RegisterComponent`, `AuthGuard`, `AuthInterceptor`).
 
 **2. Vistas de Negocio y Mapas:**

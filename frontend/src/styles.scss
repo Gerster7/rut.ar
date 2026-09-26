@@ -1,1 +1,306 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   Design System y Estilos Globales — rut.ar
+   Basado en la identidad visual del proyecto y lineamientos DSW (UTN FRRo)
+   Breakpoints obligatorios: SM (< 768px), MD (768px - 1024px), LG (> 1024px)
+   ========================================================================== */
+
+:root {
+  /* Paleta Base Midnight / Indigo */
+  --bg-app: #181326;
+  --bg-sidebar: #120e1e;
+  --bg-topbar: rgba(24, 19, 38, 0.85);
+  --bg-card: #201833;
+  --bg-card-elevated: #281f3e;
+  --bg-card-hover: #2e2347;
+  --bg-input: #2a2043;
+  --bg-table-header: #141a33;
+  --bg-table-row-even: rgba(255, 255, 255, 0.02);
+
+  /* Bordes y Líneas Divisorias */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --border-focus: #3b82f6;
+
+  /* Tipografía y Textos */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Colores de Marca y Estados */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: rgba(59, 130, 246, 0.15);
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-accent-light: rgba(245, 158, 11, 0.15);
+  --color-success: #10b981;
+  --color-success-light: rgba(16, 185, 129, 0.15);
+  --color-danger: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.15);
+  --color-info: #06b6d4;
+
+  /* Radios y Sombras */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.5);
+
+  /* Dimensiones de Layout */
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 72px;
+  --topbar-height: 64px;
+}
+
+/* Reset y Normalización */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+/* ==========================================================================
+   Componentes Reutilizables de UI
+   ========================================================================== */
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-accent {
+  background-color: var(--color-accent);
+  color: #120e1e;
+  font-weight: 600;
+
+  &:hover {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--border-hover);
+  }
+}
+
+.btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Badges de Estado */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.badge-abierto {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-asignado {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-en_proceso, .badge-en-curso {
+  background-color: rgba(6, 182, 212, 0.15);
+  color: var(--color-info);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.badge-completado, .badge-finalizado {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-cancelado {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Tarjetas (Cards) */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+}
+
+/* Tablas Estructuradas */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+
+  thead {
+    background-color: var(--bg-table-header);
+    border-bottom: 1px solid var(--border-subtle);
+
+    th {
+      padding: 0.9rem 1.1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background-color 0.15s ease;
+
+      &:nth-child(even) {
+        background-color: var(--bg-table-row-even);
+      }
+
+      &:hover {
+        background-color: var(--bg-card-hover);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 0.9rem 1.1rem;
+      color: var(--text-secondary);
+      vertical-align: middle;
+      white-space: nowrap;
+
+      &.highlight {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   Breakpoints Obligatorios DSW:
+   - SM: < 768px (Mobile)
+   - MD: 768px - 1024px (Tablet)
+   - LG: > 1024px (Desktop)
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  /* SM - Mobile */
+  :root {
+    --sidebar-width: 0px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* MD - Tablet */
+  :root {
+    --sidebar-width: var(--sidebar-collapsed-width);
+  }
+}
+
+@media (min-width: 1025px) {
+  /* LG - Desktop */
+  :root {
+    --sidebar-width: 250px;
+  }
+}

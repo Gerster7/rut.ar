@@ -130,9 +130,26 @@ Se implementaron 6 pruebas de integración exhaustivas con Supertest cubriendo e
 
 ---
 
+### 6. Inicialización de Frontend y Layout Shell (Issue #15 Cerrado)
+- **Design Tokens y Sistema Visual:** Se implementó [`frontend/src/styles.scss`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/styles.scss) tomando como base exacta el diseño en Figma (`Untitled.fig` y `Untitled.pdf`, ahora archivados en `docs/designs/`). Paleta midnight/indigo (`#181326`, `#201833`), acentos ámbar y azul, cards redondeadas y variables CSS.
+- **Breakpoints DSW Obligatorios:** Implementación estricta de `SM (< 768px)`, `MD (768px - 1024px)` y `LG (> 1024px)`.
+- **Configuración de Providers:** Se incorporó `provideHttpClient(withFetch())` en [`frontend/src/app/app.config.ts`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/app.config.ts).
+- **Componentes Shell Creados:**
+  - [`SidebarComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/layout/sidebar/sidebar.component.ts): Menú lateral colapsable para tablet y drawer deslizante para mobile con accesibilidad de teclado.
+  - [`HeaderComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/layout/header/header.component.ts): Barra superior con telemetría de backend y botón toggle hamburguesa.
+  - [`FooterComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/layout/footer/footer.component.ts): Créditos institucionales DSW (UTN FRRo - Legajo 43855).
+  - [`DashboardComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/features/dashboard/dashboard.component.ts): Replica fiel del diseño con mapa interactivo centrado en Rosario/Cañada de Gómez y panel lateral en fila superior (65%/35%), y tabla de cargas estructurada en fila inferior.
+- **Modelos Core:** Tipado TypeScript en [`frontend/src/app/core/models/index.ts`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/core/models/index.ts).
+- **Métricas de Calidad:**
+  - **Tests Frontend:** **3/3 tests unitarios aprobados** con Vitest (`npx nx test frontend --watch=false`).
+  - **Linter Frontend:** `0` errores en `npx nx lint frontend`.
+  - **Build Frontend:** Compilación exitosa en `npx nx build frontend`.
+
+---
+
 ## 📌 Próximos Pasos (Para la Próxima Sesión)
 
 | Prioridad | Issue / Tarea | Descripción |
 | :---: | :--- | :--- |
-| 1 | [#15](https://github.com/Gerster7/rut.ar/issues/15) `[FE] feat(core)` | Inicializar el Core de Frontend en Angular 22: configuración de `provideHttpClient` con interceptores, tipado base, layout responsive Mobile-First y breakpoints obligatorios (SM <768px, MD 768-1024px, LG >1024px). |
-| 2 | [#16](https://github.com/Gerster7/rut.ar/issues/16) `[FE] feat(auth)` | Módulo de autenticación en Frontend (`AuthService` con Signals, vistas de Login/Registro, Guards e Interceptor JWT). |
+| 1 | [#16](https://github.com/Gerster7/rut.ar/issues/16) `[FE] feat(auth)` | Módulo de autenticación en Frontend (`AuthService` con Signals, vistas de Login/Registro, Guards e Interceptor JWT). |
+| 2 | [#17](https://github.com/Gerster7/rut.ar/issues/17) `[FE] feat(negocios)` | Vistas de listado con filtros (`NegociosList`) y formulario de alta de cargas/negocios conectado a la API de Backend. |
