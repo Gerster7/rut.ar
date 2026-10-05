@@ -24,6 +24,18 @@ export interface CargaDemo {
   distanciaKm: number;
 }
 
+export interface FleteroDemo {
+  id: number;
+  nombre: string;
+  telefono: string;
+  vehiculo: string;
+  patente: string;
+  capacidadKg: number;
+  coords: [number, number];
+  localidad: string;
+  disponible: boolean;
+}
+
 export interface MapBounds {
   latMin: number;
   latMax: number;
@@ -32,7 +44,7 @@ export interface MapBounds {
   label: string;
 }
 
-export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
+export type BaseLayerType = 'relieve' | 'oscuro' | 'calles' | 'satelite';
 
 @Component({
   selector: 'app-dashboard',
@@ -70,25 +82,31 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
                   class="option-pill" 
                   [class.active]="filterStatus() === 'todos'" 
                   (click)="filterStatus.set('todos')">
-                  Todos
+                  Todos ({{ cargas().length }})
                 </button>
                 <button 
                   class="option-pill" 
                   [class.active]="filterStatus() === 'abierto'" 
                   (click)="filterStatus.set('abierto')">
-                  Abiertos
+                  Abiertos ({{ countByStatus('abierto') }})
                 </button>
                 <button 
                   class="option-pill" 
                   [class.active]="filterStatus() === 'asignado'" 
                   (click)="filterStatus.set('asignado')">
-                  Asignados
+                  Asignados ({{ countByStatus('asignado') }})
+                </button>
+                <button 
+                  class="option-pill" 
+                  [class.active]="filterStatus() === 'en_proceso'" 
+                  (click)="filterStatus.set('en_proceso')">
+                  En Proceso ({{ countByStatus('en_proceso') }})
                 </button>
                 <button 
                   class="option-pill" 
                   [class.active]="filterStatus() === 'completado'" 
                   (click)="filterStatus.set('completado')">
-                  Completados
+                  Completados ({{ countByStatus('completado') }})
                 </button>
               </div>
             </div>
@@ -100,13 +118,13 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
                   class="layer-option" 
                   [class.active]="activeLayer() === 'relieve'" 
                   (click)="changeBaseLayer('relieve')">
-                  ⛰️ Mapa de Relieve / Topográfico
+                  ⛰️ Relieve & Topografía (Esri Topo)
                 </button>
                 <button 
                   class="layer-option" 
                   [class.active]="activeLayer() === 'oscuro'" 
                   (click)="changeBaseLayer('oscuro')">
-                  🌙 Modo Oscuro (CartoDB)
+                  🌙 Modo Oscuro (CartoDB Dark)
                 </button>
                 <button 
                   class="layer-option" 
@@ -154,7 +172,7 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
               <h2>Mapa Interactivo de Cargas & Fleteros</h2>
             </div>
             <span class="current-region-badge">
-              📍 Área Visible: <strong>{{ currentBounds().label }}</strong>
+              📍 Región: <strong>{{ currentBounds().label }}</strong> &bull; {{ visibleCargasInMap().length }} cargas &bull; {{ visibleFleterosInMap().length }} fleteros
             </span>
           </div>
 
@@ -195,7 +213,7 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
             <div class="pan-buttons">
               <button 
                 class="pan-btn" 
-                title="Desplazarse a Cañada de Gómez"
+                title="Desplazarse al Oeste (Cañada de Gómez / Armstrong)"
                 (click)="flyToZone('oeste')">
                 &larr; Cañada de Gómez
               </button>
@@ -207,9 +225,15 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
               </button>
               <button 
                 class="pan-btn" 
-                title="Desplazarse a Rosario"
+                title="Desplazarse al Este (Rosario)"
                 (click)="flyToZone('este')">
                 Rosario &rarr;
+              </button>
+              <button 
+                class="pan-btn" 
+                title="Desplazarse al Norte (Santa Fe / Rafaela)"
+                (click)="flyToZone('norte')">
+                &uarr; Santa Fe
               </button>
             </div>
 
@@ -225,7 +249,7 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
 
         <!-- Contenedor del Mapa Leaflet -->
         <div class="map-viewport-container">
-          <div #mapContainer class="leaflet-map-host"></div>
+          <div #mapContainer class="leaflet-map-host" id="leafletMapHost"></div>
 
           <!-- ==========================================================
                POPUP FLOTANTE EN EL MAPA CON DETALLE DEL NEGOCIO SELECCIONADO
@@ -287,12 +311,42 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
               </div>
             </div>
           }
+
+          <!-- POPUP DE FLETERO SELECCIONADO -->
+          @if (selectedFletero() && fleteroPopupOpen()) {
+            <div class="map-popup-card fletero-card">
+              <div class="popup-header">
+                <div class="popup-title-wrap">
+                  <span class="badge badge-asignado">FLETERO EN LÍNEA</span>
+                  <h4>{{ selectedFletero()!.nombre }}</h4>
+                </div>
+                <button class="popup-close-btn" (click)="closeFleteroPopup()" aria-label="Cerrar">&times;</button>
+              </div>
+              <div class="popup-body">
+                <div class="stat-pill">
+                  <span class="stat-lbl">Vehículo:</span>
+                  <strong>{{ selectedFletero()!.vehiculo }}</strong>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-lbl">Patente:</span>
+                  <strong>{{ selectedFletero()!.patente }}</strong>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-lbl">Capacidad:</span>
+                  <strong>{{ selectedFletero()!.capacidadKg | number }} kg</strong>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-lbl">Ubicación Actual:</span>
+                  <span>{{ selectedFletero()!.localidad }}</span>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </section>
 
       <!-- ==============================================================
            TABLA DE CARGAS SINCRONIZADA CON EL ENCUADRE DEL MAPA
-           (Si te desplazás por el mapa, la tabla se actualiza dinámicamente)
            ============================================================== -->
       <section class="table-section">
         <div class="table-container">
@@ -301,7 +355,7 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
               <h3>Demandas de Transporte en el Área Visible del Mapa</h3>
               <p class="sync-status">
                 <span class="sync-dot"></span>
-                Mostrando <strong>{{ displayedCargas().length }}</strong> cargas visibles en pantalla 
+                Mostrando <strong>{{ displayedCargas().length }}</strong> de {{ cargas().length }} cargas en 
                 <em>({{ currentBounds().label }})</em>
               </p>
             </div>
@@ -498,8 +552,8 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
     .map-viewport-container {
       flex: 1;
       position: relative;
-      min-height: 440px;
-      height: 440px;
+      min-height: 480px;
+      height: 480px;
       overflow: hidden;
       background: #0f172a;
     }
@@ -507,6 +561,8 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
     .leaflet-map-host {
       width: 100%;
       height: 100%;
+      min-height: 480px;
+      display: block;
       z-index: 10;
     }
 
@@ -517,13 +573,19 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
       right: 1rem;
       width: 340px;
       max-width: calc(100% - 2rem);
-      background: rgba(18, 14, 30, 0.94);
+      background: rgba(18, 14, 30, 0.95);
       backdrop-filter: blur(16px);
       border: 1px solid var(--border-hover);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-elevated);
       z-index: 500;
       animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fletero-card {
+      right: auto;
+      left: 1rem;
+      border-color: rgba(59, 130, 246, 0.4);
     }
 
     @keyframes popIn {
@@ -860,8 +922,8 @@ export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
       }
 
       .map-viewport-container {
-        min-height: 340px;
-        height: 340px;
+        min-height: 380px;
+        height: 380px;
       }
 
       .map-popup-card {
@@ -893,6 +955,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   activeLayer = signal<BaseLayerType>('relieve');
 
+  // Catálogo completo de 15 Cargas / Negocios realistas en Santa Fe y alrededores
   cargas = signal<CargaDemo[]>([
     {
       id: 1,
@@ -910,14 +973,14 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     {
       id: 2,
       descripcion: 'Bobinas de Acero y Perfiles',
-      tipoCarga: 'Metalúrgica',
+      tipoCarga: 'Metalúrgica Pesada',
       origen: 'Rosario (Zona Sur)',
       origenCoords: [-32.9800, -60.6500],
       destino: 'Casilda (Ruta 33)',
       destinoCoords: [-33.0442, -61.1681],
       pesoTotal: 8200,
       estado: 'asignado',
-      fleteroSugerido: 'Carlos Rodríguez (Semirremolque 12.000 kg)',
+      fleteroSugerido: 'Carlos Rodríguez (Scania R450 - 28.000 kg)',
       distanciaKm: 56.1,
     },
     {
@@ -930,7 +993,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       destinoCoords: [-32.7489, -60.7328],
       pesoTotal: 14000,
       estado: 'abierto',
-      fleteroSugerido: 'Transporte El Ceibo (Acoplado 15.000 kg)',
+      fleteroSugerido: 'Transporte El Ceibo (Volvo FH16 - 15.000 kg)',
       distanciaKm: 142.8,
     },
     {
@@ -943,30 +1006,281 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       destinoCoords: [-32.9468, -60.6393],
       pesoTotal: 3200,
       estado: 'completado',
-      fleteroSugerido: 'Martín Gómez (Furgón Térmico 4.000 kg)',
+      fleteroSugerido: 'Martín Gómez (Iveco Daily - 4.000 kg)',
       distanciaKm: 168.0,
+    },
+    {
+      id: 5,
+      descripcion: 'Maquinaria Agrícola e Implementos',
+      tipoCarga: 'Carga Indivisible',
+      origen: 'Armstrong (Parque Industrial)',
+      origenCoords: [-32.7833, -61.6000],
+      destino: 'Venado Tuerto (Ruta 8)',
+      destinoCoords: [-33.7456, -61.9688],
+      pesoTotal: 9800,
+      estado: 'abierto',
+      fleteroSugerido: 'Transportes Litoral (Mercedes Actros - 24.000 kg)',
+      distanciaKm: 114.5,
+    },
+    {
+      id: 6,
+      descripcion: 'Envases y Embalajes Plásticos',
+      tipoCarga: 'Volumen Ligero',
+      origen: 'Pérez (Área Industrial)',
+      origenCoords: [-32.9983, -60.7681],
+      destino: 'Rafaela (Parque de Actividades)',
+      destinoCoords: [-31.2526, -61.4916],
+      pesoTotal: 5100,
+      estado: 'en_proceso',
+      fleteroSugerido: 'Lucas Ferreyra (Ford Cargo - 8.500 kg)',
+      distanciaKm: 218.0,
+    },
+    {
+      id: 7,
+      descripcion: 'Carga Refrigerada de Carnes',
+      tipoCarga: 'Termocontrolada (-18°C)',
+      origen: 'Villa Gobernador Gálvez',
+      origenCoords: [-33.0306, -60.6406],
+      destino: 'San Lorenzo (Dársena Norte)',
+      destinoCoords: [-32.7489, -60.7328],
+      pesoTotal: 11500,
+      estado: 'asignado',
+      fleteroSugerido: 'Carlos Rodríguez (Scania R450 - 28.000 kg)',
+      distanciaKm: 42.3,
+    },
+    {
+      id: 8,
+      descripcion: 'Harinas Especiales y Premezclas',
+      tipoCarga: 'Bolsas Paletizadas',
+      origen: 'Cañada de Gómez (Molino)',
+      origenCoords: [-32.8167, -61.3833],
+      destino: 'San Nicolás de los Arroyos',
+      destinoCoords: [-33.3333, -60.2167],
+      pesoTotal: 18000,
+      estado: 'abierto',
+      fleteroSugerido: 'Transporte Don Pedro (Semirremolque - 20.000 kg)',
+      distanciaKm: 138.2,
+    },
+    {
+      id: 9,
+      descripcion: 'Repuestos Hidráulicos y Filtros',
+      tipoCarga: 'Cajas Seguras',
+      origen: 'Casilda (Zona Centro)',
+      origenCoords: [-33.0442, -61.1681],
+      destino: 'Armstrong',
+      destinoCoords: [-32.7833, -61.6000],
+      pesoTotal: 2800,
+      estado: 'abierto',
+      fleteroSugerido: 'Juan Pérez (Mercedes 1620 - 5.000 kg)',
+      distanciaKm: 52.8,
+    },
+    {
+      id: 10,
+      descripcion: 'Quesos Duros y Lácteos Frescos',
+      tipoCarga: 'Refrigerado (4°C)',
+      origen: 'Rafaela (Cuenca Lechera)',
+      origenCoords: [-31.2526, -61.4916],
+      destino: 'Santa Fe Capital (Abasto)',
+      destinoCoords: [-31.6333, -60.7000],
+      pesoTotal: 6400,
+      estado: 'completado',
+      fleteroSugerido: 'Walter Benítez (Chasis con Lona - 10.000 kg)',
+      distanciaKm: 98.4,
+    },
+    {
+      id: 11,
+      descripcion: 'Fertilizantes y Nutrientes Granulados',
+      tipoCarga: 'Granel Químico',
+      origen: 'Puerto San Lorenzo',
+      origenCoords: [-32.7489, -60.7328],
+      destino: 'Venado Tuerto',
+      destinoCoords: [-33.7456, -61.9688],
+      pesoTotal: 22000,
+      estado: 'abierto',
+      fleteroSugerido: 'Transportes Litoral (Mercedes Actros - 24.000 kg)',
+      distanciaKm: 172.0,
+    },
+    {
+      id: 12,
+      descripcion: 'Aceite Vegetal en Tambores',
+      tipoCarga: 'Carga General',
+      origen: 'San Lorenzo (Aceitera)',
+      origenCoords: [-32.7489, -60.7328],
+      destino: 'Cañada de Gómez',
+      destinoCoords: [-32.8167, -61.3833],
+      pesoTotal: 7500,
+      estado: 'abierto',
+      fleteroSugerido: 'Lucas Ferreyra (Ford Cargo - 8.500 kg)',
+      distanciaKm: 68.6,
+    },
+    {
+      id: 13,
+      descripcion: 'Ladrillos Huecos y Viguetas',
+      tipoCarga: 'Materiales Construcción',
+      origen: 'Rosario (Oeste)',
+      origenCoords: [-32.9600, -60.7100],
+      destino: 'Casilda',
+      destinoCoords: [-33.0442, -61.1681],
+      pesoTotal: 12300,
+      estado: 'asignado',
+      fleteroSugerido: 'Transporte Don Pedro (Semirremolque - 20.000 kg)',
+      distanciaKm: 48.0,
+    },
+    {
+      id: 14,
+      descripcion: 'Soja y Maíz para Molienda',
+      tipoCarga: 'Granel Agrícola',
+      origen: 'Marcos Juárez (Límite Cba/SF)',
+      origenCoords: [-32.6961, -62.1067],
+      destino: 'Puerto San Lorenzo',
+      destinoCoords: [-32.7489, -60.7328],
+      pesoTotal: 26000,
+      estado: 'en_proceso',
+      fleteroSugerido: 'Carlos Rodríguez (Scania R450 - 28.000 kg)',
+      distanciaKm: 156.4,
+    },
+    {
+      id: 15,
+      descripcion: 'Agroquímicos y Sanitarios',
+      tipoCarga: 'Sustancias Controladas',
+      origen: 'Santa Fe Capital',
+      origenCoords: [-31.6333, -60.7000],
+      destino: 'San Jorge',
+      destinoCoords: [-31.8964, -61.8592],
+      pesoTotal: 8900,
+      estado: 'abierto',
+      fleteroSugerido: 'Transporte El Ceibo (Volvo FH16 - 15.000 kg)',
+      distanciaKm: 122.1,
+    },
+  ]);
+
+  // Flota de 8 Fleteros con posiciones activas en la región
+  fleteros = signal<FleteroDemo[]>([
+    {
+      id: 1,
+      nombre: 'Juan Pérez',
+      telefono: '03471-15523412',
+      vehiculo: 'Mercedes Benz 1620',
+      patente: 'AF123BC',
+      capacidadKg: 5000,
+      coords: [-32.8200, -61.3700],
+      localidad: 'Cañada de Gómez',
+      disponible: true,
+    },
+    {
+      id: 2,
+      nombre: 'Carlos Rodríguez',
+      telefono: '0341-156789123',
+      vehiculo: 'Scania R450 Bitrén',
+      patente: 'AG987ZZ',
+      capacidadKg: 28000,
+      coords: [-32.7500, -60.7300],
+      localidad: 'San Lorenzo',
+      disponible: false,
+    },
+    {
+      id: 3,
+      nombre: 'Transporte El Ceibo',
+      telefono: '03406-15498123',
+      vehiculo: 'Volvo FH16 Acoplado',
+      patente: 'AE456CD',
+      capacidadKg: 15000,
+      coords: [-31.9000, -61.8500],
+      localidad: 'San Jorge',
+      disponible: true,
+    },
+    {
+      id: 4,
+      nombre: 'Martín Gómez',
+      telefono: '0341-153123456',
+      vehiculo: 'Iveco Daily Térmico',
+      patente: 'AD789EF',
+      capacidadKg: 4000,
+      coords: [-32.9100, -60.6700],
+      localidad: 'Rosario Norte',
+      disponible: true,
+    },
+    {
+      id: 5,
+      nombre: 'Lucas Ferreyra',
+      telefono: '03464-15445566',
+      vehiculo: 'Ford Cargo 1722 Chasis',
+      patente: 'AC321GH',
+      capacidadKg: 8500,
+      coords: [-33.0400, -61.1600],
+      localidad: 'Casilda',
+      disponible: true,
+    },
+    {
+      id: 6,
+      nombre: 'Transportes Litoral',
+      telefono: '03471-15987654',
+      vehiculo: 'Mercedes Actros 2645',
+      patente: 'AB654JK',
+      capacidadKg: 24000,
+      coords: [-32.7800, -61.6000],
+      localidad: 'Armstrong',
+      disponible: true,
+    },
+    {
+      id: 7,
+      nombre: 'Walter Benítez',
+      telefono: '0342-154332211',
+      vehiculo: 'Volkswagen Constellation',
+      patente: 'AF876LM',
+      capacidadKg: 10000,
+      coords: [-31.6200, -60.6900],
+      localidad: 'Santa Fe Capital',
+      disponible: true,
+    },
+    {
+      id: 8,
+      nombre: 'Transporte Don Pedro',
+      telefono: '03462-15556677',
+      vehiculo: 'Renault Premium Semirremolque',
+      patente: 'AE112NO',
+      capacidadKg: 20000,
+      coords: [-33.7400, -61.9600],
+      localidad: 'Venado Tuerto',
+      disponible: true,
     },
   ]);
 
   currentBounds = signal<MapBounds>({
-    latMin: -33.6,
-    latMax: -31.2,
-    lngMin: -62.6,
+    latMin: -34.0,
+    latMax: -31.0,
+    lngMin: -62.5,
     lngMax: -60.0,
     label: 'Toda la Región',
   });
 
   selectedCarga = signal<CargaDemo | null>(this.cargas()[0]);
+  selectedFletero = signal<FleteroDemo | null>(null);
   popupOpen = signal<boolean>(true);
+  fleteroPopupOpen = signal<boolean>(false);
   filterDrawerOpen = signal<boolean>(false);
   filterStatus = signal<string>('todos');
   syncBoundingBox = signal<boolean>(true);
 
-  // Cargas que caen dentro del área visible del mapa interactivo
+  // Cargas que caen dentro del área visible del mapa
   visibleCargasInMap = computed(() => {
     const bounds = this.currentBounds();
     return this.cargas().filter((carga) => {
       const [lat, lng] = carga.origenCoords;
+      return (
+        lat >= bounds.latMin &&
+        lat <= bounds.latMax &&
+        lng >= bounds.lngMin &&
+        lng <= bounds.lngMax
+      );
+    });
+  });
+
+  // Fleteros que caen dentro del área visible del mapa
+  visibleFleterosInMap = computed(() => {
+    const bounds = this.currentBounds();
+    return this.fleteros().filter((f) => {
+      const [lat, lng] = f.coords;
       return (
         lat >= bounds.latMin &&
         lat <= bounds.latMax &&
@@ -987,7 +1301,10 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   });
 
   ngAfterViewInit(): void {
-    this.initLeafletMap();
+    // Timeout para garantizar que el DOM esté completamente montado y dimensionado
+    setTimeout(() => {
+      this.initLeafletMap();
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -1001,34 +1318,41 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     const container = this.mapContainer()?.nativeElement;
     if (!container) return;
 
-    // Inicializar mapa centrado en el corredor Rosario - Cañada de Gómez
+    // Inicializar mapa centrado en el corredor Santa Fe - Rosario - Cañada de Gómez
     this.map = L.map(container, {
-      center: [-32.88, -61.0],
+      center: [-32.85, -61.1],
       zoom: 9,
       zoomControl: true,
+      minZoom: 6,
+      maxZoom: 18,
     });
 
-    // Definición de Capas Base
+    // Definición de Capas Base de alta confiabilidad
     this.tileLayers = {
-      relieve: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        maxZoom: 17,
-        attribution: 'Map data: &copy; OpenStreetMap, SRTM | Style: &copy; OpenTopoMap',
+      // Esri World Topo Map: relieve de elevación y topografía de altísima velocidad y estabilidad
+      relieve: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: 'Tiles &copy; Esri &mdash; Fuentes: USGS, Intermap, SRTM',
       }),
+      // CartoDB Dark Matter: modo oscuro contrastado
       oscuro: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       }),
-      calles: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // OpenStreetMap estándar
+      calles: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors',
       }),
+      // Esri World Imagery (satélite)
       satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 18,
-        attribution: 'Tiles &copy; Esri',
+        attribution: 'Tiles &copy; Esri, Earthstar Geographics',
       }),
     };
 
-    // Añadir capa inicial (Relieve)
+    // Añadir capa inicial (Relieve Topográfico)
     this.tileLayers.relieve?.addTo(this.map);
 
     // Capa de marcadores y polilíneas
@@ -1039,9 +1363,12 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       this.updateBoundsFromLeaflet();
     });
 
-    // Renderizar los marcadores iniciales
-    this.renderMarkersOnMap();
-    this.updateBoundsFromLeaflet();
+    // Forzar redibujado de tamaño
+    setTimeout(() => {
+      this.map?.invalidateSize();
+      this.renderMarkersOnMap();
+      this.updateBoundsFromLeaflet();
+    }, 150);
   }
 
   changeBaseLayer(layer: BaseLayerType): void {
@@ -1063,11 +1390,15 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     const b = this.map.getBounds();
     const center = this.map.getCenter();
 
-    let label = 'Vista Interactiva';
-    if (center.lng < -61.2) {
-      label = 'Zona Oeste (Cañada de Gómez / Armstrong)';
+    let label = 'Toda la Región';
+    if (center.lng < -61.4) {
+      label = 'Zona Oeste (Cañada de Gómez / Armstrong / Cba)';
     } else if (center.lng > -60.8) {
-      label = 'Zona Este (Rosario / Litoral)';
+      label = 'Zona Este (Rosario / Gran Rosario / San Lorenzo)';
+    } else if (center.lat > -32.0) {
+      label = 'Zona Norte (Santa Fe Capital / Rafaela)';
+    } else if (center.lat < -33.4) {
+      label = 'Zona Sur (Venado Tuerto / Casilda)';
     } else {
       label = 'Corredor Central Santa Fe';
     }
@@ -1085,63 +1416,68 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     if (!this.markersLayer || !this.map) return;
     this.markersLayer.clearLayers();
 
-    // Íconos personalizados usando divIcon para evitar colisiones SVG
-    const originIcon = (label: string) => L.divIcon({
+    // Íconos personalizados usando divIcon (estables, sin bug de salto)
+    const originIcon = (label: string, id: number) => L.divIcon({
       className: 'leaflet-custom-marker-wrapper',
       html: `
-        <div class="leaflet-marker-pin origin-pin">
+        <div class="leaflet-marker-pin origin-pin" title="Carga #${id}: ${label}">
           <span class="pin-dot"></span>
-          <span class="pin-title">${label}</span>
+          <span class="pin-title">#${id} ${label}</span>
         </div>
       `,
       iconSize: [120, 36],
       iconAnchor: [12, 12],
     });
 
-    const destIcon = (label: string) => L.divIcon({
+    const destIcon = (label: string, id: number) => L.divIcon({
       className: 'leaflet-custom-marker-wrapper',
       html: `
-        <div class="leaflet-marker-pin dest-pin">
+        <div class="leaflet-marker-pin dest-pin" title="Destino Carga #${id}: ${label}">
           <span class="pin-dot"></span>
-          <span class="pin-title">${label}</span>
+          <span class="pin-title">🏁 ${label}</span>
         </div>
       `,
       iconSize: [120, 36],
       iconAnchor: [12, 12],
     });
 
-    const truckIcon = L.divIcon({
+    const truckIcon = (nombre: string, cap: number) => L.divIcon({
       className: 'leaflet-custom-marker-wrapper',
       html: `
-        <div class="leaflet-marker-pin truck-pin">
+        <div class="leaflet-marker-pin truck-pin" title="Fletero: ${nombre}">
           <span class="pin-dot"></span>
-          <span class="pin-title">🚛 Juan P. (5.000 kg)</span>
+          <span class="pin-title">🚛 ${nombre} (${Math.round(cap / 1000)}t)</span>
         </div>
       `,
-      iconSize: [140, 36],
+      iconSize: [150, 36],
       iconAnchor: [12, 12],
     });
 
-    // Marcadores para cada carga
+    // 1. Renderizar todas las 15 Cargas
     this.cargas().forEach((carga) => {
       // Origen
       const originMarker = L.marker(carga.origenCoords, {
-        icon: originIcon(carga.origen.split('(')[0]),
+        icon: originIcon(carga.origen.split('(')[0].trim(), carga.id),
       });
       originMarker.on('click', () => this.selectCarga(carga));
       this.markersLayer?.addLayer(originMarker);
 
       // Destino
       const destMarker = L.marker(carga.destinoCoords, {
-        icon: destIcon(carga.destino.split('(')[0]),
+        icon: destIcon(carga.destino.split('(')[0].trim(), carga.id),
       });
       destMarker.on('click', () => this.selectCarga(carga));
       this.markersLayer?.addLayer(destMarker);
     });
 
-    // Marcador de Fletero en Cañada de Gómez / Armstrong
-    const truckMarker = L.marker([-32.83, -61.15], { icon: truckIcon });
-    this.markersLayer?.addLayer(truckMarker);
+    // 2. Renderizar los 8 Fleteros con camiones
+    this.fleteros().forEach((f) => {
+      const truckMarker = L.marker(f.coords, {
+        icon: truckIcon(f.nombre, f.capacidadKg),
+      });
+      truckMarker.on('click', () => this.selectFletero(f));
+      this.markersLayer?.addLayer(truckMarker);
+    });
 
     // Trazar ruta de la carga seleccionada
     this.updateRoutePolyline();
@@ -1171,30 +1507,47 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   selectCarga(carga: CargaDemo): void {
     this.selectedCarga.set(carga);
     this.popupOpen.set(true);
+    this.fleteroPopupOpen.set(false);
     this.updateRoutePolyline();
 
-    // Centrar suavemente hacia el origen de la carga
     if (this.map) {
       this.map.panTo(carga.origenCoords, { animate: true });
     }
   }
 
-  flyToZone(zone: 'oeste' | 'centro' | 'este'): void {
+  selectFletero(f: FleteroDemo): void {
+    this.selectedFletero.set(f);
+    this.fleteroPopupOpen.set(true);
+    this.popupOpen.set(false);
+
+    if (this.map) {
+      this.map.panTo(f.coords, { animate: true });
+    }
+  }
+
+  flyToZone(zone: 'oeste' | 'centro' | 'este' | 'norte'): void {
     if (!this.map) return;
     if (zone === 'oeste') {
-      // Cañada de Gómez
-      this.map.flyTo([-32.8167, -61.3833], 11, { duration: 1.2 });
+      // Cañada de Gómez y Armstrong
+      this.map.flyTo([-32.81, -61.45], 11, { duration: 1.2 });
     } else if (zone === 'este') {
-      // Rosario
-      this.map.flyTo([-32.9468, -60.6393], 11, { duration: 1.2 });
+      // Rosario y Gran Rosario
+      this.map.flyTo([-32.95, -60.66], 11, { duration: 1.2 });
+    } else if (zone === 'norte') {
+      // Santa Fe Capital y Rafaela
+      this.map.flyTo([-31.50, -61.0], 9, { duration: 1.2 });
     } else {
       // Toda la región
-      this.map.flyTo([-32.88, -61.0], 9, { duration: 1.2 });
+      this.map.flyTo([-32.85, -61.1], 9, { duration: 1.2 });
     }
   }
 
   closePopup(): void {
     this.popupOpen.set(false);
+  }
+
+  closeFleteroPopup(): void {
+    this.fleteroPopupOpen.set(false);
   }
 
   openFilterDrawer(): void {
@@ -1214,5 +1567,9 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     this.syncBoundingBox.set(true);
     this.flyToZone('centro');
     this.changeBaseLayer('relieve');
+  }
+
+  countByStatus(status: 'abierto' | 'asignado' | 'en_proceso' | 'completado'): number {
+    return this.cargas().filter((c) => c.estado === status).length;
   }
 }

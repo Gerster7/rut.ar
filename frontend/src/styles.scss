@@ -409,3 +409,30 @@ button {
   }
 }
 
+/* Garantizar visibilidad de canvas y tiles de Leaflet */
+#leafletMapHost, .leaflet-map-host {
+  width: 100% !important;
+  height: 480px !important;
+  min-height: 480px !important;
+  display: block !important;
+  position: relative !important;
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #110e1e !important;
+  font-family: var(--font-sans) !important;
+}
+
+.leaflet-pane, .leaflet-tile-pane, .leaflet-layer {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
+.leaflet-tile {
+  visibility: inherit !important;
+}
+
+
