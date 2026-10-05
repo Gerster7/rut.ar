@@ -159,6 +159,44 @@ Se implementaron 6 pruebas de integración exhaustivas con Supertest cubriendo e
 
 ---
 
+# Resumen de Sesión — 5 de Octubre de 2026
+
+## 🎯 Objetivos de la Sesión
+1. Corregir el bug visual de hover en los marcadores del mapa (salto de coordenadas por colisión de `transform` SVG).
+2. Incorporar interactividad total al mapa según el requerimiento del usuario y de cátedra DSW: desplazamiento fluido (pan), zoom, y selección de capa de **Relieve** (topográfico).
+3. Cerrar el **Issue #18 (`[FE] feat(map)`)** integrando la biblioteca canónica **Leaflet.js** con sincronización reactiva Bounding-Box hacia la tabla inferior.
+
+---
+
+## 🚀 Logros y Cambios Realizados
+
+### 1. Integración de Leaflet.js y Soporte Multicapa (Issue #18 Cerrado)
+- Se instalaron las dependencias `leaflet` y `@types/leaflet`.
+- Se importaron los estilos canónicos en [`frontend/src/styles.scss`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/styles.scss) y se configuró `allowedCommonJsDependencies: ["leaflet"]` en [`frontend/project.json`](file:///Users/cristiangerster/Personal/rut.ar/frontend/project.json).
+- En [`DashboardComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/features/dashboard/dashboard.component.ts), se refactorizó el visor hacia una instancia real de Leaflet con 4 capas intercambiables:
+  - ⛰️ **Relieve / Topográfico** (OpenTopoMap con curvas de nivel y sombreado).
+  - 🌙 **Modo Oscuro** (CartoDB Dark Matter, integrado con el tema medianoche).
+  - 🗺️ **Calles** (OpenStreetMap estándar).
+  - 🛰️ **Satelital** (Esri World Imagery).
+
+### 2. Eliminación del Bug de Hover en Marcadores
+- Se reemplazaron los elementos SVG por marcadores nativos de Leaflet utilizando `L.divIcon` con clases CSS personalizadas (`.leaflet-marker-pin`, `.origin-pin`, `.dest-pin`, `.truck-pin`).
+- El efecto hover en CSS ahora escala únicamente el punto interior (`.pin-dot`), eliminando cualquier interferencia con la posición geográfica absoluta del marcador.
+
+### 3. Sincronización Bounding-Box en Tiempo Real (Mapa &rarr; Tabla)
+- Se vincularon los eventos `moveend` y `zoomend` del mapa interactivo con la señal de coordenadas visibles (`currentBounds`).
+- Al arrastrar el mapa o hacer zoom:
+  - Si el usuario se desplaza hacia el oeste (Cañada de Gómez / Armstrong), las cargas de Rosario salen del campo visual y desaparecen automáticamente de la tabla inferior.
+  - Se añadieron botones de paneo con animación fluida (`flyToZone`): `← Cañada de Gómez`, `Toda la Región`, `Rosario →`.
+
+### 4. Métricas de Calidad
+- **Tests Frontend:** **3/3 tests aprobados** con Vitest (`npx nx test frontend --watch=false`).
+- **Tests Backend:** **42/42 tests aprobados** con Jest (`npx nx test backend --skip-nx-cache`).
+- **Linter Frontend:** `0` errores y `0` warnings en `npx nx lint frontend`.
+- **Build Frontend:** Compilación limpia de producción en `npx nx build frontend`.
+
+---
+
 ## 📌 Próximos Pasos (Para la Próxima Sesión)
 
 | Prioridad | Issue / Tarea | Descripción |

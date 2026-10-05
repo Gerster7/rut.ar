@@ -66,6 +66,7 @@ Para garantizar la consistencia entre agentes de IA y desarrolladores, rigen las
 - [x] **Scaffold del Proyecto:** Aplicación `frontend` en Nx monorepo con Angular v22 Standalone (Signals, `inject()`, sin `NgModule`).
 - [x] **Configuración de Proxy:** Proxy reverso configurado en `frontend/proxy.conf.json` apuntando a `http://localhost:3333`.
 - [x] [#15](https://github.com/Gerster7/rut.ar/issues/15) - `[FE] feat(core)`: Setup de Angular 22, `provideHttpClient(withFetch())`, design tokens basados en Figma (midnight/indigo), layout shell responsive (breakpoints DSW: SM <768px, MD 768-1024px, LG >1024px) con `SidebarComponent`, `HeaderComponent`, `FooterComponent` y vista `DashboardComponent`.
+- [x] [#18](https://github.com/Gerster7/rut.ar/issues/18) - `[FE] feat(map)`: Mapa interactivo con Leaflet.js, soporte multicapa (Relieve/OpenTopoMap, Modo Oscuro CartoDB, Calles OSM, Satélite Esri), marcadores con divIcon sin jitter, trazado de rutas geodésicas y sincronización reactiva Bounding-Box con la tabla de cargas.
 
 ### Pendiente ⏳
 **1. Configuración Core & Auth:**
@@ -73,7 +74,6 @@ Para garantizar la consistencia entre agentes de IA y desarrolladores, rigen las
 
 **2. Vistas de Negocio y Mapas:**
 - [ ] [#17](https://github.com/Gerster7/rut.ar/issues/17) - `[FE] feat(negocios)`: Vistas de listado con filtros (`NegociosList`) y formulario de alta de cargas/negocios.
-- [ ] [#18](https://github.com/Gerster7/rut.ar/issues/18) - `[FE] feat(map)`: Componente de mapa interactivo con Leaflet.js y OpenStreetMap (`MapComponent`).
 - [ ] [#19](https://github.com/Gerster7/rut.ar/issues/19) - `[FE] feat(matching)`: Detalle de negocio y flujo interactivo de búsqueda y asignación de fleteros (Epic 1 UI).
 - [ ] [#20](https://github.com/Gerster7/rut.ar/issues/20) - `[FE] feat(viajes)`: Vistas de listado (`ViajesList`) y detalle (`ViajeDetail`) de viajes.
 - [ ] [#21](https://github.com/Gerster7/rut.ar/issues/21) - `[FE] feat(retorno-vacio)`: Vista de sugerencias de cargas de retorno para fleteros en tránsito (Epic 2 UI).

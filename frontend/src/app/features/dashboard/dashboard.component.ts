@@ -1,14 +1,23 @@
-import { Component, signal, computed } from '@angular/core';
+import { 
+  Component, 
+  signal, 
+  computed, 
+  AfterViewInit, 
+  OnDestroy, 
+  ElementRef, 
+  viewChild 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import * as L from 'leaflet';
 
 export interface CargaDemo {
   id: number;
   descripcion: string;
   tipoCarga: string;
   origen: string;
-  origenCoords: [number, number]; // [latitud, longitud]
+  origenCoords: [number, number]; // [lat, lng]
   destino: string;
-  destinoCoords: [number, number]; // [latitud, longitud]
+  destinoCoords: [number, number]; // [lat, lng]
   pesoTotal: number;
   estado: 'abierto' | 'asignado' | 'en_proceso' | 'completado';
   fleteroSugerido?: string;
@@ -22,6 +31,8 @@ export interface MapBounds {
   lngMax: number;
   label: string;
 }
+
+export type BaseLayerType = 'relieve' | 'calles' | 'oscuro' | 'satelite';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,7 +57,7 @@ export interface MapBounds {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
               </svg>
-              <h3>Filtros de Búsqueda</h3>
+              <h3>Filtros & Opciones</h3>
             </div>
             <button class="close-btn" (click)="closeFilterDrawer()" aria-label="Cerrar filtros">&times;</button>
           </div>
@@ -83,37 +94,53 @@ export interface MapBounds {
             </div>
 
             <div class="filter-group">
-              <span class="filter-label">Encuadre Geográfico del Mapa</span>
-              <div class="region-buttons">
-                @for (region of regionPresets; track region.label) {
-                  <button 
-                    class="region-btn" 
-                    [class.active]="currentBounds().label === region.label"
-                    (click)="setRegion(region)">
-                    {{ region.label }}
-                  </button>
-                }
+              <span class="filter-label">Capa del Mapa</span>
+              <div class="layer-selector-list">
+                <button 
+                  class="layer-option" 
+                  [class.active]="activeLayer() === 'relieve'" 
+                  (click)="changeBaseLayer('relieve')">
+                  ⛰️ Mapa de Relieve / Topográfico
+                </button>
+                <button 
+                  class="layer-option" 
+                  [class.active]="activeLayer() === 'oscuro'" 
+                  (click)="changeBaseLayer('oscuro')">
+                  🌙 Modo Oscuro (CartoDB)
+                </button>
+                <button 
+                  class="layer-option" 
+                  [class.active]="activeLayer() === 'calles'" 
+                  (click)="changeBaseLayer('calles')">
+                  🗺️ Calles (OpenStreetMap)
+                </button>
+                <button 
+                  class="layer-option" 
+                  [class.active]="activeLayer() === 'satelite'" 
+                  (click)="changeBaseLayer('satelite')">
+                  🛰️ Satelital (Esri World Imagery)
+                </button>
               </div>
             </div>
 
             <div class="filter-group">
-              <span class="filter-label">Sincronización Dinámica</span>
+              <span class="filter-label">Sincronización Geoespacial</span>
               <label class="toggle-control" for="syncToggle">
                 <input id="syncToggle" type="checkbox" [checked]="syncBoundingBox()" (change)="toggleSync()" />
-                <span class="toggle-text">Filtrar tabla según área visible del mapa</span>
+                <span class="toggle-text">Filtrar tabla según área visible en el mapa</span>
               </label>
             </div>
           </div>
 
           <div class="drawer-footer">
             <button class="btn btn-secondary w-full" (click)="resetFilters()">Restablecer</button>
-            <button class="btn btn-primary w-full" (click)="closeFilterDrawer()">Aplicar Filtros</button>
+            <button class="btn btn-primary w-full" (click)="closeFilterDrawer()">Aplicar</button>
           </div>
         </aside>
       }
 
       <!-- ==============================================================
-           MAPA INTERACTIVO CON DETALLES COMO POPUP EN EL MAPA
+           MAPA INTERACTIVO LEAFLET CON CAPAS Y RELIEVE
            ============================================================== -->
       <section class="map-section card">
         <div class="map-header">
@@ -124,7 +151,7 @@ export interface MapBounds {
                 <line x1="8" y1="2" x2="8" y2="18" />
                 <line x1="16" y1="6" x2="16" y2="22" />
               </svg>
-              <h2>Mapa de Cargas y Fleteros</h2>
+              <h2>Mapa Interactivo de Cargas & Fleteros</h2>
             </div>
             <span class="current-region-badge">
               📍 Área Visible: <strong>{{ currentBounds().label }}</strong>
@@ -132,32 +159,61 @@ export interface MapBounds {
           </div>
 
           <div class="header-controls">
-            <!-- Selector rápido de cuadrantes / Pan del Mapa -->
+            <!-- Selector rápido de Capas Base (Relieve, Oscuro, Calles, Satélite) -->
+            <div class="layer-pill-group">
+              <button 
+                class="layer-pill" 
+                [class.active]="activeLayer() === 'relieve'" 
+                (click)="changeBaseLayer('relieve')"
+                title="Ver mapa con curvas de nivel y relieve de elevación">
+                ⛰️ Relieve
+              </button>
+              <button 
+                class="layer-pill" 
+                [class.active]="activeLayer() === 'oscuro'" 
+                (click)="changeBaseLayer('oscuro')"
+                title="Ver mapa en modo oscuro contrastado">
+                🌙 Oscuro
+              </button>
+              <button 
+                class="layer-pill" 
+                [class.active]="activeLayer() === 'calles'" 
+                (click)="changeBaseLayer('calles')"
+                title="Ver mapa urbano de calles">
+                🗺️ Calles
+              </button>
+              <button 
+                class="layer-pill" 
+                [class.active]="activeLayer() === 'satelite'" 
+                (click)="changeBaseLayer('satelite')"
+                title="Ver vista satelital">
+                🛰️ Satélite
+              </button>
+            </div>
+
+            <!-- Botones de Paneo Rápido -->
             <div class="pan-buttons">
               <button 
                 class="pan-btn" 
-                title="Desplazarse hacia el Oeste (Cañada de Gómez / Marcos Juárez)"
-                [class.active]="currentBounds().label === 'Oeste (Cañada de Gómez)'"
-                (click)="panTo('oeste')">
-                &larr; Oeste
+                title="Desplazarse a Cañada de Gómez"
+                (click)="flyToZone('oeste')">
+                &larr; Cañada de Gómez
               </button>
               <button 
                 class="pan-btn" 
-                title="Ver Toda la Región"
-                [class.active]="currentBounds().label === 'Toda la Región'"
-                (click)="panTo('centro')">
+                title="Centrar en toda la región"
+                (click)="flyToZone('centro')">
                 Toda la Región
               </button>
               <button 
                 class="pan-btn" 
-                title="Desplazarse hacia el Este (Rosario y Gran Rosario)"
-                [class.active]="currentBounds().label === 'Este (Rosario)'"
-                (click)="panTo('este')">
-                Este &rarr;
+                title="Desplazarse a Rosario"
+                (click)="flyToZone('este')">
+                Rosario &rarr;
               </button>
             </div>
 
-            <!-- Botón Filtros (accesible directamente sobre el mapa) -->
+            <!-- Botón Filtros -->
             <button class="btn btn-secondary btn-sm" (click)="openFilterDrawer()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -167,82 +223,9 @@ export interface MapBounds {
           </div>
         </div>
 
-        <!-- Viewport del Mapa -->
-        <div class="map-viewport">
-          <svg class="map-svg-layer" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#f59e0b" />
-                <stop offset="100%" stop-color="#10b981" />
-              </linearGradient>
-              <filter id="shadowFilter" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
-              </filter>
-            </defs>
-
-            <!-- Territorio provincial base -->
-            <rect width="800" height="420" fill="#0f172a" />
-            <path d="M 40,30 L 760,20 L 730,400 L 60,390 Z" fill="#1b2438" opacity="0.5" />
-
-            <!-- Red de Autopistas / Rutas provinciales y nacionales -->
-            <path d="M 80,360 Q 280,270 480,240 T 700,140" stroke="#334155" stroke-width="3" fill="none" />
-            <path d="M 220,400 L 480,240 L 520,40" stroke="#334155" stroke-width="2" stroke-dasharray="4" fill="none" />
-
-            <!-- Rutas visibles de cargas -->
-            @if (isCargaVisibleInMap(selectedCarga())) {
-              <path 
-                [attr.d]="getSvgRoutePath(selectedCarga())" 
-                stroke="url(#routeGrad)" 
-                stroke-width="4" 
-                stroke-dasharray="6,6" 
-                fill="none" 
-                class="animated-route" />
-            }
-
-            <!-- Marcadores Geográficos Dinámicos (solo se dibujan si caen en el Bounding Box actual) -->
-            @for (carga of visibleCargasInMap(); track carga.id) {
-              <!-- Marcador de Origen -->
-              <g 
-                [attr.transform]="'translate(' + getSvgX(carga.origenCoords[1]) + ',' + getSvgY(carga.origenCoords[0]) + ')'"
-                filter="url(#shadowFilter)"
-                class="map-marker"
-                [class.selected-marker]="selectedCarga()?.id === carga.id"
-                (click)="selectCarga(carga)">
-                <circle r="13" fill="#f59e0b" />
-                <circle r="5" fill="#120e1e" />
-                <text y="-18" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="600">
-                  {{ carga.origen.split('(')[0] }}
-                </text>
-              </g>
-
-              <!-- Marcador de Destino -->
-              <g 
-                [attr.transform]="'translate(' + getSvgX(carga.destinoCoords[1]) + ',' + getSvgY(carga.destinoCoords[0]) + ')'"
-                filter="url(#shadowFilter)"
-                class="map-marker"
-                (click)="selectCarga(carga)">
-                <circle r="14" fill="#10b981" />
-                <path d="M -4,-2 L 0,-6 L 4,-2 L 2,-2 L 2,4 L -2,4 L -2,-2 Z" fill="#120e1e" />
-                <text y="-18" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="600">
-                  {{ carga.destino.split('(')[0] }}
-                </text>
-              </g>
-            }
-
-            <!-- Marcador de Fletero en Tránsito (si está en la zona visible) -->
-            @if (isCoordsInBounds(-32.83, -61.15)) {
-              <g 
-                [attr.transform]="'translate(' + getSvgX(-61.15) + ',' + getSvgY(-32.83) + ')'"
-                filter="url(#shadowFilter)"
-                class="map-marker truck-marker">
-                <circle r="11" fill="#3b82f6" />
-                <circle r="4" fill="#ffffff" />
-                <text y="22" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="600">
-                  Camión Juan P. (5.000 kg)
-                </text>
-              </g>
-            }
-          </svg>
+        <!-- Contenedor del Mapa Leaflet -->
+        <div class="map-viewport-container">
+          <div #mapContainer class="leaflet-map-host"></div>
 
           <!-- ==========================================================
                POPUP FLOTANTE EN EL MAPA CON DETALLE DEL NEGOCIO SELECCIONADO
@@ -309,27 +292,25 @@ export interface MapBounds {
 
       <!-- ==============================================================
            TABLA DE CARGAS SINCRONIZADA CON EL ENCUADRE DEL MAPA
-           (Si te desplazás a la izquierda, lo de Rosario desaparece)
+           (Si te desplazás por el mapa, la tabla se actualiza dinámicamente)
            ============================================================== -->
       <section class="table-section">
         <div class="table-container">
           <div class="table-toolbar">
             <div class="toolbar-title-group">
-              <h3>Demandas de Transporte en el Área Visible</h3>
+              <h3>Demandas de Transporte en el Área Visible del Mapa</h3>
               <p class="sync-status">
                 <span class="sync-dot"></span>
-                Mostrando <strong>{{ displayedCargas().length }}</strong> cargas visibles en el encuadre 
+                Mostrando <strong>{{ displayedCargas().length }}</strong> cargas visibles en pantalla 
                 <em>({{ currentBounds().label }})</em>
               </p>
             </div>
 
-            <!-- Resumen de Filtros Aplicados -->
+            <!-- Acciones de Toolbar -->
             <div class="toolbar-actions">
-              @if (currentBounds().label !== 'Toda la Región') {
-                <button class="btn btn-secondary btn-sm" (click)="panTo('centro')">
-                  Restablecer a Toda la Región
-                </button>
-              }
+              <button class="btn btn-secondary btn-sm" (click)="flyToZone('centro')">
+                Restablecer Vista Completa
+              </button>
               <button class="btn btn-secondary btn-sm filter-pill-btn" (click)="openFilterDrawer()">
                 Estado: <strong>{{ filterStatus() | uppercase }}</strong>
               </button>
@@ -354,8 +335,8 @@ export interface MapBounds {
               @if (displayedCargas().length === 0) {
                 <tr>
                   <td colspan="9" class="empty-state">
-                    No hay cargas registradas dentro del encuadre geográfico actual.
-                    <button class="btn btn-link" (click)="panTo('centro')">Ver toda la región</button>
+                    No hay cargas registradas en la porción de mapa visible actualmente.
+                    <button class="btn btn-link" (click)="flyToZone('centro')">Ver toda la región</button>
                   </td>
                 </tr>
               }
@@ -449,6 +430,38 @@ export interface MapBounds {
       display: flex;
       align-items: center;
       gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    /* Selector de Capas Base */
+    .layer-pill-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .layer-pill {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+
+      &:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      &.active {
+        background: var(--color-accent);
+        color: #120e1e;
+        font-weight: 700;
+      }
     }
 
     .pan-buttons {
@@ -472,57 +485,29 @@ export interface MapBounds {
         color: var(--text-primary);
         background: rgba(255, 255, 255, 0.06);
       }
-
-      &.active {
-        background: var(--color-primary);
-        color: #ffffff;
-        font-weight: 600;
-      }
     }
 
-    /* Viewport del Mapa */
+    /* Viewport del Mapa Leaflet */
     .map-section {
-      min-height: 440px;
+      min-height: 480px;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
-    .map-viewport {
+    .map-viewport-container {
       flex: 1;
       position: relative;
-      background: #0f172a;
+      min-height: 440px;
+      height: 440px;
       overflow: hidden;
-      min-height: 380px;
+      background: #0f172a;
     }
 
-    .map-svg-layer {
+    .leaflet-map-host {
       width: 100%;
       height: 100%;
-      display: block;
-    }
-
-    .animated-route {
-      animation: dash 20s linear infinite;
-    }
-
-    @keyframes dash {
-      to {
-        stroke-dashoffset: -1000;
-      }
-    }
-
-    .map-marker {
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-      &:hover {
-        transform: scale(1.2);
-      }
-
-      &.selected-marker circle:first-child {
-        stroke: #ffffff;
-        stroke-width: 3;
-      }
+      z-index: 10;
     }
 
     /* Popup Flotante sobre el Mapa */
@@ -537,7 +522,7 @@ export interface MapBounds {
       border: 1px solid var(--border-hover);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-elevated);
-      z-index: 50;
+      z-index: 500;
       animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -822,13 +807,13 @@ export interface MapBounds {
       color: var(--text-muted);
     }
 
-    .filter-options, .region-buttons {
+    .filter-options, .layer-selector-list {
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
     }
 
-    .option-pill, .region-btn {
+    .option-pill, .layer-option {
       padding: 0.55rem 0.85rem;
       border-radius: var(--radius-md);
       font-size: 0.82rem;
@@ -874,6 +859,11 @@ export interface MapBounds {
         gap: 1rem;
       }
 
+      .map-viewport-container {
+        min-height: 340px;
+        height: 340px;
+      }
+
       .map-popup-card {
         top: auto;
         bottom: 0.75rem;
@@ -886,10 +876,23 @@ export interface MapBounds {
         width: 100%;
         justify-content: space-between;
       }
+
+      .layer-pill-group {
+        width: 100%;
+        overflow-x: auto;
+      }
     }
   `]
 })
-export class DashboardComponent {
+export class DashboardComponent implements AfterViewInit, OnDestroy {
+  mapContainer = viewChild<ElementRef<HTMLDivElement>>('mapContainer');
+  private map: L.Map | null = null;
+  private tileLayers: Partial<Record<BaseLayerType, L.TileLayer>> = {};
+  private markersLayer: L.LayerGroup | null = null;
+  private routePolyline: L.Polyline | null = null;
+
+  activeLayer = signal<BaseLayerType>('relieve');
+
   cargas = signal<CargaDemo[]>([
     {
       id: 1,
@@ -945,45 +948,21 @@ export class DashboardComponent {
     },
   ]);
 
-  regionPresets: MapBounds[] = [
-    {
-      label: 'Toda la Región',
-      latMin: -33.5,
-      latMax: -31.2,
-      lngMin: -62.5,
-      lngMax: -60.0,
-    },
-    {
-      label: 'Oeste (Cañada de Gómez)',
-      latMin: -33.2,
-      latMax: -32.4,
-      lngMin: -62.2,
-      lngMax: -61.1, // Rosario (-60.63) queda afuera
-    },
-    {
-      label: 'Este (Rosario)',
-      latMin: -33.3,
-      latMax: -32.5,
-      lngMin: -61.0, // Cañada de Gómez (-61.38) queda afuera
-      lngMax: -60.2,
-    },
-    {
-      label: 'Norte (San Jorge / Santa Fe)',
-      latMin: -32.2,
-      latMax: -31.2,
-      lngMin: -62.2,
-      lngMax: -60.4,
-    },
-  ];
+  currentBounds = signal<MapBounds>({
+    latMin: -33.6,
+    latMax: -31.2,
+    lngMin: -62.6,
+    lngMax: -60.0,
+    label: 'Toda la Región',
+  });
 
-  currentBounds = signal<MapBounds>(this.regionPresets[0]);
   selectedCarga = signal<CargaDemo | null>(this.cargas()[0]);
   popupOpen = signal<boolean>(true);
   filterDrawerOpen = signal<boolean>(false);
   filterStatus = signal<string>('todos');
   syncBoundingBox = signal<boolean>(true);
 
-  // Cargas que caen dentro del encuadre geográfico actual del mapa
+  // Cargas que caen dentro del área visible del mapa interactivo
   visibleCargasInMap = computed(() => {
     const bounds = this.currentBounds();
     return this.cargas().filter((carga) => {
@@ -997,7 +976,7 @@ export class DashboardComponent {
     });
   });
 
-  // Cargas a renderizar en la tabla: sincronizadas con el Bounding Box del mapa + filtro de estado
+  // Cargas a renderizar en la tabla: sincronizadas con el Bounding Box de Leaflet + filtro de estado
   displayedCargas = computed(() => {
     let list = this.syncBoundingBox() ? this.visibleCargasInMap() : this.cargas();
     const status = this.filterStatus();
@@ -1007,79 +986,233 @@ export class DashboardComponent {
     return list;
   });
 
-  selectCarga(carga: CargaDemo) {
-    this.selectedCarga.set(carga);
-    this.popupOpen.set(true);
+  ngAfterViewInit(): void {
+    this.initLeafletMap();
   }
 
-  closePopup() {
-    this.popupOpen.set(false);
-  }
-
-  openFilterDrawer() {
-    this.filterDrawerOpen.set(true);
-  }
-
-  closeFilterDrawer() {
-    this.filterDrawerOpen.set(false);
-  }
-
-  toggleSync() {
-    this.syncBoundingBox.update((val) => !val);
-  }
-
-  resetFilters() {
-    this.filterStatus.set('todos');
-    this.currentBounds.set(this.regionPresets[0]);
-    this.syncBoundingBox.set(true);
-  }
-
-  setRegion(region: MapBounds) {
-    this.currentBounds.set(region);
-  }
-
-  panTo(direction: 'oeste' | 'centro' | 'este') {
-    if (direction === 'oeste') {
-      this.currentBounds.set(this.regionPresets[1]); // Cañada de Gómez
-    } else if (direction === 'este') {
-      this.currentBounds.set(this.regionPresets[2]); // Rosario
-    } else {
-      this.currentBounds.set(this.regionPresets[0]); // Toda la región
+  ngOnDestroy(): void {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
     }
   }
 
-  isCoordsInBounds(lat: number, lng: number): boolean {
-    const b = this.currentBounds();
-    return lat >= b.latMin && lat <= b.latMax && lng >= b.lngMin && lng <= b.lngMax;
+  private initLeafletMap(): void {
+    const container = this.mapContainer()?.nativeElement;
+    if (!container) return;
+
+    // Inicializar mapa centrado en el corredor Rosario - Cañada de Gómez
+    this.map = L.map(container, {
+      center: [-32.88, -61.0],
+      zoom: 9,
+      zoomControl: true,
+    });
+
+    // Definición de Capas Base
+    this.tileLayers = {
+      relieve: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: &copy; OpenStreetMap, SRTM | Style: &copy; OpenTopoMap',
+      }),
+      oscuro: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      }),
+      calles: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }),
+      satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: 'Tiles &copy; Esri',
+      }),
+    };
+
+    // Añadir capa inicial (Relieve)
+    this.tileLayers.relieve?.addTo(this.map);
+
+    // Capa de marcadores y polilíneas
+    this.markersLayer = L.layerGroup().addTo(this.map);
+
+    // Escuchar eventos de movimiento y zoom para actualizar el Bounding Box en tiempo real
+    this.map.on('moveend zoomend', () => {
+      this.updateBoundsFromLeaflet();
+    });
+
+    // Renderizar los marcadores iniciales
+    this.renderMarkersOnMap();
+    this.updateBoundsFromLeaflet();
   }
 
-  isCargaVisibleInMap(carga: CargaDemo | null): boolean {
-    if (!carga) return false;
-    return this.isCoordsInBounds(carga.origenCoords[0], carga.origenCoords[1]);
+  changeBaseLayer(layer: BaseLayerType): void {
+    if (!this.map) return;
+    this.activeLayer.set(layer);
+
+    // Remover capas existentes y agregar la elegida
+    Object.values(this.tileLayers).forEach((tl) => {
+      if (tl && this.map?.hasLayer(tl)) {
+        this.map.removeLayer(tl);
+      }
+    });
+
+    this.tileLayers[layer]?.addTo(this.map);
   }
 
-  // Mapeo geográfico de longitud a coordenada X SVG (800 px)
-  getSvgX(lng: number): number {
-    const b = this.currentBounds();
-    const ratio = (lng - b.lngMin) / (b.lngMax - b.lngMin);
-    return Math.max(50, Math.min(750, ratio * 700 + 50));
+  private updateBoundsFromLeaflet(): void {
+    if (!this.map) return;
+    const b = this.map.getBounds();
+    const center = this.map.getCenter();
+
+    let label = 'Vista Interactiva';
+    if (center.lng < -61.2) {
+      label = 'Zona Oeste (Cañada de Gómez / Armstrong)';
+    } else if (center.lng > -60.8) {
+      label = 'Zona Este (Rosario / Litoral)';
+    } else {
+      label = 'Corredor Central Santa Fe';
+    }
+
+    this.currentBounds.set({
+      latMin: b.getSouth(),
+      latMax: b.getNorth(),
+      lngMin: b.getWest(),
+      lngMax: b.getEast(),
+      label,
+    });
   }
 
-  // Mapeo geográfico de latitud a coordenada Y SVG (420 px invertido para latitud)
-  getSvgY(lat: number): number {
-    const b = this.currentBounds();
-    const ratio = (b.latMax - lat) / (b.latMax - b.latMin);
-    return Math.max(40, Math.min(380, ratio * 340 + 40));
+  private renderMarkersOnMap(): void {
+    if (!this.markersLayer || !this.map) return;
+    this.markersLayer.clearLayers();
+
+    // Íconos personalizados usando divIcon para evitar colisiones SVG
+    const originIcon = (label: string) => L.divIcon({
+      className: 'leaflet-custom-marker-wrapper',
+      html: `
+        <div class="leaflet-marker-pin origin-pin">
+          <span class="pin-dot"></span>
+          <span class="pin-title">${label}</span>
+        </div>
+      `,
+      iconSize: [120, 36],
+      iconAnchor: [12, 12],
+    });
+
+    const destIcon = (label: string) => L.divIcon({
+      className: 'leaflet-custom-marker-wrapper',
+      html: `
+        <div class="leaflet-marker-pin dest-pin">
+          <span class="pin-dot"></span>
+          <span class="pin-title">${label}</span>
+        </div>
+      `,
+      iconSize: [120, 36],
+      iconAnchor: [12, 12],
+    });
+
+    const truckIcon = L.divIcon({
+      className: 'leaflet-custom-marker-wrapper',
+      html: `
+        <div class="leaflet-marker-pin truck-pin">
+          <span class="pin-dot"></span>
+          <span class="pin-title">🚛 Juan P. (5.000 kg)</span>
+        </div>
+      `,
+      iconSize: [140, 36],
+      iconAnchor: [12, 12],
+    });
+
+    // Marcadores para cada carga
+    this.cargas().forEach((carga) => {
+      // Origen
+      const originMarker = L.marker(carga.origenCoords, {
+        icon: originIcon(carga.origen.split('(')[0]),
+      });
+      originMarker.on('click', () => this.selectCarga(carga));
+      this.markersLayer?.addLayer(originMarker);
+
+      // Destino
+      const destMarker = L.marker(carga.destinoCoords, {
+        icon: destIcon(carga.destino.split('(')[0]),
+      });
+      destMarker.on('click', () => this.selectCarga(carga));
+      this.markersLayer?.addLayer(destMarker);
+    });
+
+    // Marcador de Fletero en Cañada de Gómez / Armstrong
+    const truckMarker = L.marker([-32.83, -61.15], { icon: truckIcon });
+    this.markersLayer?.addLayer(truckMarker);
+
+    // Trazar ruta de la carga seleccionada
+    this.updateRoutePolyline();
   }
 
-  getSvgRoutePath(carga: CargaDemo | null): string {
-    if (!carga) return '';
-    const x1 = this.getSvgX(carga.origenCoords[1]);
-    const y1 = this.getSvgY(carga.origenCoords[0]);
-    const x2 = this.getSvgX(carga.destinoCoords[1]);
-    const y2 = this.getSvgY(carga.destinoCoords[0]);
-    const cx = (x1 + x2) / 2;
-    const cy = (y1 + y2) / 2 - 25;
-    return `M ${x1},${y1} Q ${cx},${cy} ${x2},${y2}`;
+  private updateRoutePolyline(): void {
+    if (!this.markersLayer) return;
+
+    if (this.routePolyline) {
+      this.markersLayer.removeLayer(this.routePolyline);
+      this.routePolyline = null;
+    }
+
+    const carga = this.selectedCarga();
+    if (!carga) return;
+
+    this.routePolyline = L.polyline([carga.origenCoords, carga.destinoCoords], {
+      color: '#f59e0b',
+      dashArray: '8, 8',
+      weight: 4,
+      opacity: 0.9,
+    });
+
+    this.markersLayer.addLayer(this.routePolyline);
+  }
+
+  selectCarga(carga: CargaDemo): void {
+    this.selectedCarga.set(carga);
+    this.popupOpen.set(true);
+    this.updateRoutePolyline();
+
+    // Centrar suavemente hacia el origen de la carga
+    if (this.map) {
+      this.map.panTo(carga.origenCoords, { animate: true });
+    }
+  }
+
+  flyToZone(zone: 'oeste' | 'centro' | 'este'): void {
+    if (!this.map) return;
+    if (zone === 'oeste') {
+      // Cañada de Gómez
+      this.map.flyTo([-32.8167, -61.3833], 11, { duration: 1.2 });
+    } else if (zone === 'este') {
+      // Rosario
+      this.map.flyTo([-32.9468, -60.6393], 11, { duration: 1.2 });
+    } else {
+      // Toda la región
+      this.map.flyTo([-32.88, -61.0], 9, { duration: 1.2 });
+    }
+  }
+
+  closePopup(): void {
+    this.popupOpen.set(false);
+  }
+
+  openFilterDrawer(): void {
+    this.filterDrawerOpen.set(true);
+  }
+
+  closeFilterDrawer(): void {
+    this.filterDrawerOpen.set(false);
+  }
+
+  toggleSync(): void {
+    this.syncBoundingBox.update((val) => !val);
+  }
+
+  resetFilters(): void {
+    this.filterStatus.set('todos');
+    this.syncBoundingBox.set(true);
+    this.flyToZone('centro');
+    this.changeBaseLayer('relieve');
   }
 }

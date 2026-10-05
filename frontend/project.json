@@ -20,7 +20,8 @@
             "input": "frontend/public"
           }
         ],
-        "styles": ["frontend/src/styles.scss"]
+        "styles": ["frontend/src/styles.scss"],
+        "allowedCommonJsDependencies": ["leaflet"]
       },
       "configurations": {
         "production": {
