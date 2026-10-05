@@ -174,22 +174,31 @@ Se implementaron 6 pruebas de integración exhaustivas con Supertest cubriendo e
 - Se instalaron las dependencias `leaflet` y `@types/leaflet`.
 - Se importaron los estilos canónicos en [`frontend/src/styles.scss`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/styles.scss) y se configuró `allowedCommonJsDependencies: ["leaflet"]` en [`frontend/project.json`](file:///Users/cristiangerster/Personal/rut.ar/frontend/project.json).
 - En [`DashboardComponent`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/app/features/dashboard/dashboard.component.ts), se refactorizó el visor hacia una instancia real de Leaflet con 4 capas intercambiables:
-  - ⛰️ **Relieve / Topográfico** (OpenTopoMap con curvas de nivel y sombreado).
+  - ⛰️ **Relieve / Topográfico** (Esri World Topo Map con curvas de nivel, relieve sombreado y alta disponibilidad).
   - 🌙 **Modo Oscuro** (CartoDB Dark Matter, integrado con el tema medianoche).
   - 🗺️ **Calles** (OpenStreetMap estándar).
   - 🛰️ **Satelital** (Esri World Imagery).
 
-### 2. Eliminación del Bug de Hover en Marcadores
+### 2. Estabilización de Visibilidad y Dimensiones de Contenedor en Leaflet
+- Se resolvió la problemática de renderizado (`0x0` px en Angular al inicio) asegurando dimensiones explícitas `#leafletMapHost, .leaflet-map-host { width: 100% !important; height: 480px !important; min-height: 480px !important; display: block !important; }` en [`frontend/src/styles.scss`](file:///Users/cristiangerster/Personal/rut.ar/frontend/src/styles.scss).
+- Se incorporó la re-evaluación del tamaño mediante `setTimeout(() => { this.map?.invalidateSize(); }, 150)` en `ngAfterViewInit` para garantizar el renderizado perfecto una vez estabilizado el layout del DOM.
+
+### 3. Eliminación del Bug de Hover en Marcadores
 - Se reemplazaron los elementos SVG por marcadores nativos de Leaflet utilizando `L.divIcon` con clases CSS personalizadas (`.leaflet-marker-pin`, `.origin-pin`, `.dest-pin`, `.truck-pin`).
 - El efecto hover en CSS ahora escala únicamente el punto interior (`.pin-dot`), eliminando cualquier interferencia con la posición geográfica absoluta del marcador.
 
-### 3. Sincronización Bounding-Box en Tiempo Real (Mapa &rarr; Tabla)
+### 4. Catálogo Enriquecido de Negocios y Fleteros (15 Cargas + 8 Fleteros)
+- Se sembró un catálogo realista distribuido geográficamente en la provincia de Santa Fe (Rosario, Cañada de Gómez, Casilda, San Lorenzo, Armstrong, San Jorge, Rafaela, Venado Tuerto, Pérez, Marcos Juárez) con variedad de tonelajes (2.8t a 26t) y estados (`abierto`, `asignado`, `en_proceso`, `completado`).
+- Se incorporaron 8 fleteros activos con vehículos identificados (Scania, Volvo, Mercedes-Benz 1620, Ford Cargo, Iveco Daily) con capacidad y telemetría.
+- Se agregaron popups dedicados e interactivos directamente sobre el mapa tanto para la carga seleccionada como para el fletero seleccionado.
+
+### 5. Sincronización Bounding-Box en Tiempo Real (Mapa &rarr; Tabla)
 - Se vincularon los eventos `moveend` y `zoomend` del mapa interactivo con la señal de coordenadas visibles (`currentBounds`).
 - Al arrastrar el mapa o hacer zoom:
   - Si el usuario se desplaza hacia el oeste (Cañada de Gómez / Armstrong), las cargas de Rosario salen del campo visual y desaparecen automáticamente de la tabla inferior.
   - Se añadieron botones de paneo con animación fluida (`flyToZone`): `← Cañada de Gómez`, `Toda la Región`, `Rosario →`.
 
-### 4. Métricas de Calidad
+### 6. Métricas de Calidad y Verificación Automatizada
 - **Tests Frontend:** **3/3 tests aprobados** con Vitest (`npx nx test frontend --watch=false`).
 - **Tests Backend:** **42/42 tests aprobados** con Jest (`npx nx test backend --skip-nx-cache`).
 - **Linter Frontend:** `0` errores y `0` warnings en `npx nx lint frontend`.
